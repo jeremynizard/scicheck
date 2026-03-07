@@ -1,0 +1,95 @@
+<div class="analysis">
+
+  <%# --- En-tete de l'article --- %>
+  <div class="article-header">
+    <div class="article-meta">
+      <span class="article-journal"><%= @meta[:journal] %></span>
+      <span class="article-date"><%= @meta[:published]&.strftime("%B %Y") rescue @meta[:published] %></span>
+    </div>
+    <h1 class="article-title"><%= @meta[:title] %></h1>
+    <p class="article-authors"><%= @meta[:authors].map { |a| a[:name] }.join(", ") %></p>
+    <% if @meta[:topics].any? %>
+      <div class="article-topics">
+        <% @meta[:topics].each do |topic| %>
+          <span class="topic-badge"><%= topic %></span>
+        <% end %>
+      </div>
+    <% end %>
+    <a href="https://doi.org/<%= @meta[:doi] %>" target="_blank" class="doi-link">
+      doi.org/<%= @meta[:doi] %>
+    </a>
+  </div>
+
+  <%# --- Score global --- %>
+  <div class="global-score score--<%= @result[:color].gsub('-', '_') %>">
+    <div class="grade-circle grade--<%= @result[:color].gsub('-', '_') %>">
+      <%= @result[:grade] %>
+    </div>
+    <div class="global-details">
+      <div class="global-number"><%= @result[:global_score] %><span>/100</span></div>
+      <p class="global-summary"><%= @result[:summary] %></p>
+    </div>
+  </div>
+
+  <%# --- Criteres individuels --- %>
+  <div class="criteria-section">
+    <h2>Detail par critere</h2>
+    <div class="criteria-list">
+      <% @result[:criteria].each_value do |criterion| %>
+        <div class="criterion-row criterion--<%= criterion[:color] %>">
+          <div class="criterion-header">
+            <span class="criterion-name"><%= criterion[:criterion] %></span>
+            <span class="criterion-value"><%= criterion[:value] %></span>
+            <div class="criterion-meter">
+              <% if criterion[:level] %>
+                <% criterion[:max_level].times do |i| %>
+                  <span class="meter-dot <%= i < criterion[:level] ? "dot--filled dot--#{criterion[:color]}" : "dot--empty" %>"></span>
+                <% end %>
+              <% else %>
+                <span class="meter-na">N/A</span>
+              <% end %>
+            </div>
+          </div>
+          <p class="criterion-explanation"><%= criterion[:explanation] %></p>
+
+          <%# Badges pour le pedigree de la revue %>
+          <% if criterion[:badges] %>
+            <div class="criterion-badges">
+              <% criterion[:badges].each do |badge| %>
+                <span class="badge <%= badge[:present] ? 'badge--yes' : 'badge--no' %>">
+                  <%= badge[:present] ? "✓" : "✗" %> <%= badge[:label] %>
+                </span>
+              <% end %>
+            </div>
+          <% end %>
+
+          <%# Patterns Open Science detectes %>
+          <% if criterion[:detected]&.any? %>
+            <div class="detected-list">
+              <% criterion[:detected].each do |d| %>
+                <span class="detected-item"><%= d %></span>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <%# --- Abstract --- %>
+  <% if @meta[:abstract].present? %>
+    <div class="abstract-section">
+      <h2>Abstract</h2>
+      <p class="abstract-text"><%= @meta[:abstract] %></p>
+    </div>
+  <% end %>
+
+  <div class="actions">
+    <%= link_to "Analyser un autre article", new_analysis_path, class: "btn-analyze" %>
+  </div>
+
+  <p class="disclaimer">
+    SciCheck est un outil d'aide a la lecture critique. Il ne remplace pas l'expertise d'un pair
+    et ses indicateurs sont automatises. Utilisez ce score comme point de depart, pas comme verdict.
+  </p>
+</div>

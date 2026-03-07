@@ -1,0 +1,44 @@
+<div class="home">
+  <div class="hero">
+    <h1>Evaluez la qualite d'un article scientifique</h1>
+    <p>Entrez un DOI pour obtenir une analyse independante basee sur des criteres methodologiques objectifs.</p>
+
+    <%= form_with url: analyses_path, method: :post, class: "doi-form", data: { turbo: false } do |f| %>
+      <div class="doi-input-wrapper">
+        <%= f.text_field :doi,
+            placeholder: "ex: 10.1097/MS9.0000000000003127",
+            class: "doi-input",
+            autofocus: true,
+            required: true %>
+        <%= f.submit "Analyser", class: "btn-analyze" %>
+      </div>
+      <p class="doi-hint">Accepte les DOI bruts ou les URLs doi.org</p>
+    <% end %>
+  </div>
+
+  <div class="criteria-preview">
+    <h2>Ce qu'on analyse</h2>
+    <div class="criteria-grid">
+      <div class="criterion-card">
+        <span class="criterion-icon">pyramid</span>
+        <strong>Type d'etude</strong>
+        <p>Position dans la pyramide des preuves (EBM)</p>
+      </div>
+      <div class="criterion-card">
+        <span class="criterion-icon">shield</span>
+        <strong>Pedigree de la revue</strong>
+        <p>Indexation dans PubMed, Scopus, DOAJ</p>
+      </div>
+      <div class="criterion-card">
+        <span class="criterion-icon">clock</span>
+        <strong>Rigueur du processus</strong>
+        <p>Duree du peer-review (soumission → acceptation)</p>
+      </div>
+      <div class="criterion-card">
+        <span class="criterion-icon">open</span>
+        <strong>Transparence</strong>
+        <p>Partage des donnees et du code source</p>
+      </div>
+    </div>
+  </div>
+</div>
