@@ -27,13 +27,13 @@ module Scoring
 
     def compute(is_in_doaj, is_core, in_pubmed)
       if is_core && in_pubmed
-        [3, "green", "Revue indexee dans les grandes bases de references (PubMed, Scopus). Haut niveau de credibilite."]
+        [ 3, "green", "Revue indexee dans les grandes bases de references (PubMed, Scopus). Haut niveau de credibilite." ]
       elsif is_core || in_pubmed
-        [2, "yellow", "Revue partiellement indexee. Credibilite correcte mais a verifier."]
+        [ 2, "yellow", "Revue partiellement indexee. Credibilite correcte mais a verifier." ]
       elsif is_in_doaj
-        [1, "orange", "Revue presente dans le DOAJ mais absente des grandes bases. Credibilite limitee."]
+        [ 1, "orange", "Revue presente dans le DOAJ mais absente des grandes bases. Credibilite limitee." ]
       else
-        [0, "red", "Revue non indexee dans les bases serieuses. Risque de revue predatrice."]
+        [ 0, "red", "Revue non indexee dans les bases serieuses. Risque de revue predatrice." ]
       end
     end
 

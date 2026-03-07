@@ -47,11 +47,11 @@ module Scoring
 
     def compute(matches)
       if matches.length >= 2
-        [2, "green",  "Plusieurs indicateurs de partage de donnees detectes. Excellente transparence."]
+        [ 2, "green",  "Plusieurs indicateurs de partage de donnees detectes. Excellente transparence." ]
       elsif matches.length == 1
-        [1, "yellow", "Un indicateur de transparence detecte. Bon signal, mais partage partiel."]
+        [ 1, "yellow", "Un indicateur de transparence detecte. Bon signal, mais partage partiel." ]
       else
-        [0, "orange", "Aucun lien vers des donnees ou code source detecte dans l'abstract."]
+        [ 0, "orange", "Aucun lien vers des donnees ou code source detecte dans l'abstract." ]
       end
     end
   end

@@ -37,13 +37,13 @@ module Scoring
 
     def compute(days)
       if days < 21
-        [0, "red",    "Accepte en moins de 3 semaines. Signe possible d'une revue sans peer-review serieux."]
+        [ 0, "red",    "Accepte en moins de 3 semaines. Signe possible d'une revue sans peer-review serieux." ]
       elsif days < 60
-        [1, "orange", "Review rapide (#{days} jours). Possible mais a la limite basse pour un peer-review rigoureux."]
+        [ 1, "orange", "Review rapide (#{days} jours). Possible mais a la limite basse pour un peer-review rigoureux." ]
       elsif days <= 180
-        [3, "green",  "Duree de review normale (#{days} jours). Signe d'un processus de relecture serieux."]
+        [ 3, "green",  "Duree de review normale (#{days} jours). Signe d'un processus de relecture serieux." ]
       else
-        [2, "yellow", "Review longue (#{days} jours). Peut indiquer des revisions majeures ou un processus lent."]
+        [ 2, "yellow", "Review longue (#{days} jours). Peut indiquer des revisions majeures ou un processus lent." ]
       end
     end
   end
