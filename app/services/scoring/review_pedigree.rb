@@ -13,8 +13,8 @@ module Scoring
       level, color, detail = compute(is_in_doaj, is_core, in_pubmed)
 
       {
-        criterion:   "Pedigree de la revue",
-        value:       @data&.dig(:journal_name) || "Inconnue",
+        criterion:   "Journal pedigree",
+        value:       @data&.dig(:journal_name) || "Unknown",
         level:       level,
         max_level:   3,
         color:       color,
@@ -27,13 +27,13 @@ module Scoring
 
     def compute(is_in_doaj, is_core, in_pubmed)
       if is_core && in_pubmed
-        [ 3, "green", "Revue indexee dans les grandes bases de references (PubMed, Scopus). Haut niveau de credibilite." ]
+        [ 3, "green", "Journal indexed in major reference databases (PubMed, Scopus). High credibility." ]
       elsif is_core || in_pubmed
-        [ 2, "yellow", "Revue partiellement indexee. Credibilite correcte mais a verifier." ]
+        [ 2, "yellow", "Journal partially indexed. Reasonable credibility but worth verifying." ]
       elsif is_in_doaj
-        [ 1, "orange", "Revue presente dans le DOAJ mais absente des grandes bases. Credibilite limitee." ]
+        [ 1, "orange", "Journal listed in DOAJ but absent from major databases. Limited credibility." ]
       else
-        [ 0, "red", "Revue non indexee dans les bases serieuses. Risque de revue predatrice." ]
+        [ 0, "red", "Journal not indexed in reputable databases. Possible predatory journal." ]
       end
     end
 

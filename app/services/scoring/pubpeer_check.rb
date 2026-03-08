@@ -9,24 +9,24 @@ module Scoring
 
       if @data[:has_comments]
         {
-          criterion:     "Signalements post-publication",
-          value:         "#{@data[:comment_count]} commentaire(s) sur PubPeer",
+          criterion:     "Post-publication flags",
+          value:         "#{@data[:comment_count]} comment(s) on PubPeer",
           level:         0,
           max_level:     1,
           color:         "red",
-          explanation:   "Cet article a ete signale sur PubPeer par des chercheurs. " \
-                         "Cela peut indiquer des erreurs, des images suspectes ou des problemes methodologiques.",
+          explanation:   "This article has been flagged on PubPeer by researchers. " \
+                         "This may indicate errors, suspicious images, or methodological issues.",
           pubpeer_url:   @data[:url]
         }
       else
         {
-          criterion:     "Signalements post-publication",
-          value:         "Aucun signalement PubPeer",
+          criterion:     "Post-publication flags",
+          value:         "No PubPeer flags",
           level:         1,
           max_level:     1,
           color:         "green",
-          explanation:   "Aucun commentaire critique n'a ete signale sur PubPeer pour cet article. " \
-                         "Note : l'absence de signalement ne garantit pas l'absence de problemes.",
+          explanation:   "No critical comments have been reported on PubPeer for this article. " \
+                         "Note: absence of flags does not guarantee absence of problems.",
           pubpeer_url:   nil
         }
       end
@@ -36,12 +36,12 @@ module Scoring
 
     def unavailable
       {
-        criterion:   "Signalements post-publication",
-        value:       "Donnees indisponibles",
+        criterion:   "Post-publication flags",
+        value:       "Data unavailable",
         level:       nil,
         max_level:   1,
         color:       "gray",
-        explanation: "Impossible de contacter PubPeer pour cet article."
+        explanation: "Unable to contact PubPeer for this article."
       }
     end
   end
