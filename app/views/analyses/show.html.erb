@@ -52,6 +52,13 @@
           </div>
           <p class="criterion-explanation"><%= criterion[:explanation] %></p>
 
+          <%# Lien PubPeer si signalements detectes %>
+          <% if criterion[:pubpeer_url] %>
+            <a href="<%= criterion[:pubpeer_url] %>" target="_blank" class="pubpeer-link">
+              Voir les commentaires sur PubPeer
+            </a>
+          <% end %>
+
           <%# Badges pour le pedigree de la revue %>
           <% if criterion[:badges] %>
             <div class="criterion-badges">

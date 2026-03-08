@@ -3,17 +3,26 @@
     <h1>Evaluez la qualite d'un article scientifique</h1>
     <p>Entrez un DOI pour obtenir une analyse independante basee sur des criteres methodologiques objectifs.</p>
 
-    <%= form_with url: analyses_path, method: :post, class: "doi-form", data: { turbo: false } do |f| %>
+    <%= form_with url: analyses_path, method: :post, class: "doi-form",
+          data: { turbo: false, controller: "analyze", action: "submit->analyze#submit" } do |f| %>
       <div class="doi-input-wrapper">
         <%= f.text_field :doi,
             placeholder: "ex: 10.1097/MS9.0000000000003127",
             class: "doi-input",
             autofocus: true,
             required: true %>
-        <%= f.submit "Analyser", class: "btn-analyze" %>
+        <%= f.submit "Analyser", class: "btn-analyze", data: { analyze_target: "submit" } %>
       </div>
       <p class="doi-hint">Accepte les DOI bruts ou les URLs doi.org</p>
     <% end %>
+
+    <div class="loading-overlay hidden" data-analyze-target="overlay">
+      <div class="loading-box">
+        <div class="spinner"></div>
+        <p class="loading-title">Analyse en cours...</p>
+        <p class="loading-detail">Interrogation des bases OpenAlex et Crossref</p>
+      </div>
+    </div>
   </div>
 
   <div class="criteria-preview">

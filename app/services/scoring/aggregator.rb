@@ -3,10 +3,11 @@ module Scoring
     # Ponderation de chaque critere sur le score global
     # La somme des poids doit etre egale a 1.0
     WEIGHTS = {
-      study_type:     0.35,
-      review_pedigree: 0.30,
+      study_type:      0.30,
+      review_pedigree: 0.25,
       review_process:  0.20,
-      open_science:    0.15
+      open_science:    0.15,
+      pubpeer:         0.10
     }.freeze
 
     def initialize(scores)
@@ -15,17 +16,23 @@ module Scoring
 
     def aggregate
       global = compute_global_score
+      # Un article signale sur PubPeer ne peut pas depasser C (59/100)
+      global = [ global, 59 ].min if pubpeer_flagged?
 
       {
-        global_score:  global,
-        grade:         grade(global),
-        color:         grade_color(global),
-        summary:       summary(global),
-        criteria:      @scores
+        global_score: global,
+        grade:        grade(global),
+        color:        grade_color(global),
+        summary:      summary(global),
+        criteria:     @scores
       }
     end
 
     private
+
+    def pubpeer_flagged?
+      @scores.dig(:pubpeer, :level) == 0
+    end
 
     def compute_global_score
       total_weight = 0.0

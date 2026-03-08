@@ -16,12 +16,14 @@ class AnalysesController < ApplicationController
              .strip
 
     # Appels API en parallele pour minimiser le temps d'attente
-    crossref_data  = nil
-    openalex_data  = nil
+    crossref_data = nil
+    openalex_data = nil
+    pubpeer_data  = nil
 
     threads = [
-      Thread.new { crossref_data  = CrossrefService.new(doi).fetch },
-      Thread.new { openalex_data  = OpenalexService.new(doi).fetch }
+      Thread.new { crossref_data = CrossrefService.new(doi).fetch },
+      Thread.new { openalex_data = OpenalexService.new(doi).fetch },
+      Thread.new { pubpeer_data  = PubpeerService.new(doi).fetch }
     ]
     threads.each(&:join)
 
@@ -35,7 +37,8 @@ class AnalysesController < ApplicationController
       study_type:      Scoring::StudyType.new(openalex_data, crossref_data).score,
       review_pedigree: Scoring::ReviewPedigree.new(openalex_data).score,
       review_process:  Scoring::ReviewProcess.new(crossref_data).score,
-      open_science:    Scoring::OpenScience.new(crossref_data).score
+      open_science:    Scoring::OpenScience.new(crossref_data).score,
+      pubpeer:         Scoring::PubpeerCheck.new(pubpeer_data).score
     }
 
     @result = Scoring::Aggregator.new(scores).aggregate
