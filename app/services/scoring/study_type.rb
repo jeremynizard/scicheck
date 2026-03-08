@@ -1,19 +1,19 @@
 module Scoring
   class StudyType
-    # Pyramide des preuves EBM — du plus fort au plus faible
+    # EBM evidence pyramid — strongest to weakest
     EBM_PYRAMID = {
-      "meta-analysis"        => { level: 5, label: "Meta-analyse",         color: "green" },
-      "systematic-review"    => { level: 5, label: "Revue systematique",   color: "green" },
-      "randomized-trial"     => { level: 4, label: "Essai randomise (RCT)", color: "green" },
-      "controlled-trial"     => { level: 3, label: "Essai controle",       color: "yellow" },
-      "cohort-study"         => { level: 3, label: "Etude de cohorte",     color: "yellow" },
-      "case-control"         => { level: 2, label: "Etude cas-temoin",     color: "yellow" },
-      "review"               => { level: 2, label: "Revue narrative",      color: "yellow" },
-      "article"              => { level: 2, label: "Article original",     color: "yellow" },
-      "case-report"          => { level: 1, label: "Rapport de cas",       color: "orange" },
-      "editorial"            => { level: 1, label: "Editorial",            color: "orange" },
-      "letter"               => { level: 1, label: "Lettre",              color: "orange" },
-      "preprint"             => { level: 0, label: "Preprint (non relu)",  color: "red" }
+      "meta-analysis"        => { level: 5, label: "Meta-analysis",              color: "green" },
+      "systematic-review"    => { level: 5, label: "Systematic review",          color: "green" },
+      "randomized-trial"     => { level: 4, label: "Randomized controlled trial", color: "green" },
+      "controlled-trial"     => { level: 3, label: "Controlled trial",           color: "yellow" },
+      "cohort-study"         => { level: 3, label: "Cohort study",               color: "yellow" },
+      "case-control"         => { level: 2, label: "Case-control study",         color: "yellow" },
+      "review"               => { level: 2, label: "Narrative review",           color: "yellow" },
+      "article"              => { level: 2, label: "Original article",           color: "yellow" },
+      "case-report"          => { level: 1, label: "Case report",               color: "orange" },
+      "editorial"            => { level: 1, label: "Editorial",                 color: "orange" },
+      "letter"               => { level: 1, label: "Letter",                    color: "orange" },
+      "preprint"             => { level: 0, label: "Preprint (not peer-reviewed)", color: "red" }
     }.freeze
 
     def initialize(openalex_data, crossref_data)
@@ -23,10 +23,10 @@ module Scoring
 
     def score
       type = detect_type
-      info = EBM_PYRAMID[type] || { level: 1, label: "Type inconnu", color: "gray" }
+      info = EBM_PYRAMID[type] || { level: 1, label: "Unknown type", color: "gray" }
 
       {
-        criterion:   "Type d'etude",
+        criterion:   "Study type",
         value:       info[:label],
         level:       info[:level],
         max_level:   5,
@@ -38,11 +38,11 @@ module Scoring
     private
 
     def detect_type
-      # OpenAlex est la source la plus fiable pour le type
+      # OpenAlex is the most reliable source for type
       raw = @openalex&.dig(:type)&.downcase
       return raw if EBM_PYRAMID.key?(raw)
 
-      # Fallback sur Crossref
+      # Fallback to Crossref
       raw = @crossref&.dig(:type)&.downcase
       return "article" if raw == "journal-article"
 
@@ -51,12 +51,12 @@ module Scoring
 
     def explanation(info)
       case info[:level]
-      when 5 then "Niveau de preuve maximal. Ce type d'etude synthetise plusieurs recherches."
-      when 4 then "Niveau de preuve eleve. L'assignation aleatoire limite les biais."
-      when 3 then "Niveau de preuve moyen. Utile mais sujet a des biais de selection."
-      when 2 then "Niveau de preuve limite. A confirmer avec d'autres etudes."
-      when 1 then "Niveau de preuve faible. Ne pas generaliser les conclusions."
-      when 0 then "Attention : cet article n'a pas encore ete relu par des pairs."
+      when 5 then "Highest level of evidence. This study type synthesizes multiple research studies."
+      when 4 then "High level of evidence. Random assignment limits bias."
+      when 3 then "Moderate level of evidence. Useful but subject to selection bias."
+      when 2 then "Limited level of evidence. Should be confirmed by other studies."
+      when 1 then "Low level of evidence. Do not generalize the conclusions."
+      when 0 then "Warning: this article has not yet been peer-reviewed."
       end
     end
   end

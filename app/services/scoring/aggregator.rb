@@ -1,12 +1,16 @@
 module Scoring
   class Aggregator
-    # Ponderation de chaque critere sur le score global
-    # La somme des poids doit etre egale a 1.0
+    # Weight of each criterion on the global score
+    # Weights must sum to 1.0
     WEIGHTS = {
-      study_type:     0.35,
-      review_pedigree: 0.30,
-      review_process:  0.20,
-      open_science:    0.15
+      study_type:            0.25,
+      review_pedigree:       0.20,
+      review_process:        0.15,
+      open_science:          0.10,
+      pubpeer:               0.10,
+      citation_profile:      0.08,
+      retracted_references:  0.07,
+      author_track_record:   0.05
     }.freeze
 
     def initialize(scores)
@@ -15,17 +19,23 @@ module Scoring
 
     def aggregate
       global = compute_global_score
+      # A PubPeer-flagged article cannot score above C (59/100)
+      global = [ global, 59 ].min if pubpeer_flagged?
 
       {
-        global_score:  global,
-        grade:         grade(global),
-        color:         grade_color(global),
-        summary:       summary(global),
-        criteria:      @scores
+        global_score: global,
+        grade:        grade(global),
+        color:        grade_color(global),
+        summary:      summary(global),
+        criteria:     @scores
       }
     end
 
     private
+
+    def pubpeer_flagged?
+      @scores.dig(:pubpeer, :level) == 0
+    end
 
     def compute_global_score
       total_weight = 0.0
@@ -35,7 +45,7 @@ module Scoring
         score = @scores[key]
         next if score.nil? || score[:level].nil?
 
-        # Normalise le score sur 100
+        # Normalize score to 100
         normalized = (score[:level].to_f / score[:max_level]) * 100
         weighted_sum  += normalized * weight
         total_weight  += weight
@@ -68,15 +78,15 @@ module Scoring
     def summary(score)
       case score
       when 80..100
-        "Article de bonne qualite methodologique. Les criteres principaux sont satisfaits."
+        "Good methodological quality. Key criteria are met."
       when 60..79
-        "Article acceptable. Quelques points de vigilance identifies."
+        "Acceptable article. Some points of concern identified."
       when 40..59
-        "Article de qualite moyenne. Plusieurs criteres importants ne sont pas satisfaits."
+        "Average quality. Several important criteria are not met."
       when 20..39
-        "Article de faible qualite. A lire avec prudence et a croiser avec d'autres sources."
+        "Low quality article. Read with caution and cross-reference with other sources."
       else
-        "Article de tres faible qualite ou provenant d'une source non fiable."
+        "Very low quality or from an unreliable source."
       end
     end
   end

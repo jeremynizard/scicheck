@@ -30,6 +30,7 @@ class OpenalexService
       is_oa:             data.dig("open_access", "is_oa"),
       oa_status:         data.dig("open_access", "oa_status"),
       cited_by_count:    data["cited_by_count"],
+      cited_by_percentile_year: data.dig("cited_by_percentile_year", "min"),
       indexed_in:        data["indexed_in"],    # ["crossref", "pubmed", "doaj", ...]
 
       # Source = la revue

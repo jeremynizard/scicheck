@@ -1,44 +1,178 @@
 <div class="home">
   <div class="hero">
-    <h1>Evaluez la qualite d'un article scientifique</h1>
-    <p>Entrez un DOI pour obtenir une analyse independante basee sur des criteres methodologiques objectifs.</p>
+    <h1>Evaluate the quality of a scientific article</h1>
+    <p>Enter a DOI to get an independent analysis based on objective methodological criteria.</p>
 
-    <%= form_with url: analyses_path, method: :post, class: "doi-form", data: { turbo: false } do |f| %>
+    <%= form_with url: analyses_path, method: :post, class: "doi-form",
+          data: { turbo: false, controller: "analyze", action: "submit->analyze#submit" } do |f| %>
       <div class="doi-input-wrapper">
         <%= f.text_field :doi,
-            placeholder: "ex: 10.1097/MS9.0000000000003127",
+            placeholder: "e.g. 10.1097/MS9.0000000000003127",
             class: "doi-input",
             autofocus: true,
             required: true %>
-        <%= f.submit "Analyser", class: "btn-analyze" %>
+        <%= f.submit "Analyze", class: "btn-analyze", data: { analyze_target: "submit" } %>
       </div>
-      <p class="doi-hint">Accepte les DOI bruts ou les URLs doi.org</p>
+      <p class="doi-hint">Accepts raw DOIs or doi.org URLs</p>
     <% end %>
+
+    <div class="loading-overlay hidden" data-analyze-target="overlay">
+      <div class="loading-box">
+        <div class="spinner"></div>
+        <p class="loading-title">Analysis in progress...</p>
+        <p class="loading-detail">Querying OpenAlex and Crossref databases</p>
+      </div>
+    </div>
   </div>
 
   <div class="criteria-preview">
-    <h2>Ce qu'on analyse</h2>
+    <h2>What we analyze</h2>
     <div class="criteria-grid">
-      <div class="criterion-card">
-        <span class="criterion-icon">pyramid</span>
-        <strong>Type d'etude</strong>
-        <p>Position dans la pyramide des preuves (EBM)</p>
-      </div>
-      <div class="criterion-card">
-        <span class="criterion-icon">shield</span>
-        <strong>Pedigree de la revue</strong>
-        <p>Indexation dans PubMed, Scopus, DOAJ</p>
-      </div>
-      <div class="criterion-card">
-        <span class="criterion-icon">clock</span>
-        <strong>Rigueur du processus</strong>
-        <p>Duree du peer-review (soumission → acceptation)</p>
-      </div>
-      <div class="criterion-card">
-        <span class="criterion-icon">open</span>
-        <strong>Transparence</strong>
-        <p>Partage des donnees et du code source</p>
-      </div>
+
+      <details class="criterion-card">
+        <summary>
+          <strong>Study type</strong>
+          <span class="card-weight">25%</span>
+          <p>EBM evidence pyramid ranking</p>
+        </summary>
+        <div class="card-details">
+          <dl>
+            <dt>Source</dt>
+            <dd>OpenAlex article type, Crossref fallback</dd>
+            <dt>How it works</dt>
+            <dd>Maps the article type (meta-analysis, RCT, cohort, case report, etc.) to its position in the evidence-based medicine pyramid. Scored from 0 (preprint) to 5 (meta-analysis / systematic review).</dd>
+            <dt>Weight</dt>
+            <dd>25% of the global score</dd>
+          </dl>
+        </div>
+      </details>
+
+      <details class="criterion-card">
+        <summary>
+          <strong>Journal pedigree</strong>
+          <span class="card-weight">20%</span>
+          <p>Indexed in PubMed, Scopus, DOAJ</p>
+        </summary>
+        <div class="card-details">
+          <dl>
+            <dt>Source</dt>
+            <dd>OpenAlex source metadata (is_core, is_in_doaj, indexed_in)</dd>
+            <dt>How it works</dt>
+            <dd>Checks whether the journal is indexed in major databases. Indexed in both PubMed and Scopus = top score. DOAJ-only = limited credibility. Not indexed = possible predatory journal.</dd>
+            <dt>Weight</dt>
+            <dd>20% of the global score</dd>
+          </dl>
+        </div>
+      </details>
+
+      <details class="criterion-card">
+        <summary>
+          <strong>Review rigor</strong>
+          <span class="card-weight">15%</span>
+          <p>Peer-review duration check</p>
+        </summary>
+        <div class="card-details">
+          <dl>
+            <dt>Source</dt>
+            <dd>Crossref assertion dates (received &rarr; accepted)</dd>
+            <dt>How it works</dt>
+            <dd>Measures the time between submission and acceptance. Under 3 weeks is a red flag (rubber-stamp review). 60&ndash;180 days is the normal range for a thorough peer review.</dd>
+            <dt>Weight</dt>
+            <dd>15% of the global score</dd>
+          </dl>
+        </div>
+      </details>
+
+      <details class="criterion-card">
+        <summary>
+          <strong>Transparency</strong>
+          <span class="card-weight">10%</span>
+          <p>Data &amp; code sharing signals</p>
+        </summary>
+        <div class="card-details">
+          <dl>
+            <dt>Source</dt>
+            <dd>Crossref abstract text (pattern matching)</dd>
+            <dt>How it works</dt>
+            <dd>Scans the abstract for links or mentions of data repositories (GitHub, Zenodo, OSF, Figshare, Dryad, ClinicalTrials.gov, PROSPERO, etc.). Two or more matches = excellent transparency.</dd>
+            <dt>Weight</dt>
+            <dd>10% of the global score</dd>
+          </dl>
+        </div>
+      </details>
+
+      <details class="criterion-card">
+        <summary>
+          <strong>PubPeer flags</strong>
+          <span class="card-weight">10%</span>
+          <p>Post-publication integrity check</p>
+        </summary>
+        <div class="card-details">
+          <dl>
+            <dt>Source</dt>
+            <dd>PubPeer API</dd>
+            <dt>How it works</dt>
+            <dd>Checks whether the article has been flagged on PubPeer by researchers (e.g. image manipulation, statistical issues). A flagged article is capped at grade C (59/100) regardless of other scores.</dd>
+            <dt>Weight</dt>
+            <dd>10% of the global score (+ hard cap if flagged)</dd>
+          </dl>
+        </div>
+      </details>
+
+      <details class="criterion-card">
+        <summary>
+          <strong>Citation profile</strong>
+          <span class="card-weight">8%</span>
+          <p>Field-normalized citation impact</p>
+        </summary>
+        <div class="card-details">
+          <dl>
+            <dt>Source</dt>
+            <dd>OpenAlex cited_by_percentile_year</dd>
+            <dt>How it works</dt>
+            <dd>Uses a percentile (0&ndash;99) normalized by field and publication year. Top 25% = green, 50&ndash;74 = yellow, 25&ndash;49 = orange, below 25 = red. Articles less than one year old are marked N/A.</dd>
+            <dt>Weight</dt>
+            <dd>8% of the global score</dd>
+          </dl>
+        </div>
+      </details>
+
+      <details class="criterion-card">
+        <summary>
+          <strong>Retracted references</strong>
+          <span class="card-weight">7%</span>
+          <p>Cited sources retraction check</p>
+        </summary>
+        <div class="card-details">
+          <dl>
+            <dt>Source</dt>
+            <dd>Crossref reference DOIs &rarr; OpenAlex is_retracted filter</dd>
+            <dt>How it works</dt>
+            <dd>Extracts all cited DOIs from the reference list, then batch-queries OpenAlex to check if any have been retracted. Zero retracted = green. One = orange. Two or more = red.</dd>
+            <dt>Weight</dt>
+            <dd>7% of the global score</dd>
+          </dl>
+        </div>
+      </details>
+
+      <details class="criterion-card">
+        <summary>
+          <strong>Author track record</strong>
+          <span class="card-weight">5%</span>
+          <p>h-index &amp; affiliations</p>
+        </summary>
+        <div class="card-details">
+          <dl>
+            <dt>Source</dt>
+            <dd>OpenAlex Authors API (up to 5 authors)</dd>
+            <dt>How it works</dt>
+            <dd>Fetches h-index, publication count, and institutional affiliations for each author. At least one author with h-index &ge; 20 and an affiliation = top score. All authors below h-index 3 = red.</dd>
+            <dt>Weight</dt>
+            <dd>5% of the global score</dd>
+          </dl>
+        </div>
+      </details>
+
     </div>
   </div>
 </div>

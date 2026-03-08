@@ -10,12 +10,12 @@ module Scoring
 
       if received.nil? || accepted.nil?
         return {
-          criterion:   "Rigueur du processus",
-          value:       "Donnees indisponibles",
+          criterion:   "Review rigor",
+          value:       "Data unavailable",
           level:       nil,
           max_level:   3,
           color:       "gray",
-          explanation: "Les dates de soumission et d'acceptation ne sont pas publiees par cet editeur."
+          explanation: "Submission and acceptance dates are not published by this publisher."
         }
       end
 
@@ -23,8 +23,8 @@ module Scoring
       level, color, detail = compute(days)
 
       {
-        criterion:   "Rigueur du processus",
-        value:       "#{days} jours de review",
+        criterion:   "Review rigor",
+        value:       "#{days}-day review",
         level:       level,
         max_level:   3,
         color:       color,
@@ -37,13 +37,13 @@ module Scoring
 
     def compute(days)
       if days < 21
-        [ 0, "red",    "Accepte en moins de 3 semaines. Signe possible d'une revue sans peer-review serieux." ]
+        [ 0, "red",    "Accepted in under 3 weeks. Possible sign of a journal without serious peer review." ]
       elsif days < 60
-        [ 1, "orange", "Review rapide (#{days} jours). Possible mais a la limite basse pour un peer-review rigoureux." ]
+        [ 1, "orange", "Fast review (#{days} days). Possible but on the low end for rigorous peer review." ]
       elsif days <= 180
-        [ 3, "green",  "Duree de review normale (#{days} jours). Signe d'un processus de relecture serieux." ]
+        [ 3, "green",  "Normal review duration (#{days} days). Sign of a serious review process." ]
       else
-        [ 2, "yellow", "Review longue (#{days} jours). Peut indiquer des revisions majeures ou un processus lent." ]
+        [ 2, "yellow", "Long review (#{days} days). May indicate major revisions or a slow process." ]
       end
     end
   end

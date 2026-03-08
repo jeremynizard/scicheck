@@ -1,6 +1,6 @@
 module Scoring
   class OpenScience
-    # Patterns signalant un partage de donnees ouvertes
+    # Patterns indicating open data sharing
     DATA_PATTERNS = [
       /github\.com/i,
       /gitlab\.com/i,
@@ -26,8 +26,8 @@ module Scoring
       level, color, detail = compute(matches)
 
       {
-        criterion:   "Transparence (Open Science)",
-        value:       matches.any? ? "Donnees partagees detectees" : "Aucun partage detecte",
+        criterion:   "Transparency (Open Science)",
+        value:       matches.any? ? "Shared data detected" : "No sharing detected",
         level:       level,
         max_level:   2,
         color:       color,
@@ -47,11 +47,11 @@ module Scoring
 
     def compute(matches)
       if matches.length >= 2
-        [ 2, "green",  "Plusieurs indicateurs de partage de donnees detectes. Excellente transparence." ]
+        [ 2, "green",  "Multiple data sharing indicators detected. Excellent transparency." ]
       elsif matches.length == 1
-        [ 1, "yellow", "Un indicateur de transparence detecte. Bon signal, mais partage partiel." ]
+        [ 1, "yellow", "One transparency indicator detected. Good sign, but only partial sharing." ]
       else
-        [ 0, "orange", "Aucun lien vers des donnees ou code source detecte dans l'abstract." ]
+        [ 0, "orange", "No links to data or source code detected in the abstract." ]
       end
     end
   end
