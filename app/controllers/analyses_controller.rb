@@ -10,10 +10,9 @@ class AnalysesController < ApplicationController
       return redirect_to new_analysis_path
     end
 
-    # Normalize DOI: accepts doi.org URLs, "DOI:" prefix, or raw DOI
-    doi = doi.gsub(%r{https?://(dx\.)?doi\.org/}i, "")
-             .gsub(/\ADOI:\s*/i, "")
-             .strip
+    # Normalize DOI: handles doi.org URLs, publisher URLs (nature.com, etc.),
+    # "DOI:" prefix, or raw DOI
+    doi = DoiResolver.new(doi).resolve
 
     # Parallel API calls to minimize wait time
     crossref_data = nil
