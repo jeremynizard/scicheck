@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: scicheck
+    runtime: docker
+    repo: https://github.com/jeremynizard/scicheck
+    branch: master
+    plan: free
+    healthCheckPath: /up
+    envVars:
+      - key: RAILS_MASTER_KEY
+        sync: false
