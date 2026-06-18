@@ -12,7 +12,7 @@ require "action_controller/railtie"
 # require "action_text/engine"
 require "action_view/railtie"
 # require "action_cable/engine"
-# require "rails/test_unit/railtie"
+require "rails/test_unit/railtie"
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
@@ -38,5 +38,13 @@ module Scicheck
 
     # Don't generate system test files.
     config.generators.system_tests = nil
+
+    # Rate limiting (rack-attack is not auto-inserted as middleware).
+    config.middleware.use Rack::Attack
+
+    # Internationalization: English default, French available.
+    config.i18n.available_locales = %i[en fr]
+    config.i18n.default_locale = :en
+    config.i18n.fallbacks = true
   end
 end

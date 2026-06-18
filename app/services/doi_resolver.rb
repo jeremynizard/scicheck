@@ -3,25 +3,30 @@ class DoiResolver
 
   DOI_PATTERN = %r{(10\.\d{4,9}/[^\s"'<>]+)}
 
+  # DOI extracted from common publisher HTML meta tags.
+  META_PATTERNS = [
+    /citation_doi["']\s+content=["']([^"']+)/i,
+    /DC\.identifier["']\s+content=["']([^"']+)/i,
+    /prism\.doi["']\s+content=["']([^"']+)/i,
+    /["']doi["']\s*:\s*["']([^"']+)/i
+  ].freeze
+
   def initialize(input)
     @input = input.to_s.strip
   end
 
-  # Returns a clean DOI string or nil if none could be resolved.
+  # Returns a clean DOI string, or nil if none could be resolved.
   def resolve
-    # 1. Try to extract a DOI pattern directly from the input
-    doi = extract_doi(@input)
+    # 1. A DOI present directly in the input (raw DOI, "DOI:" prefix, or a
+    #    doi.org / publisher URL whose path contains the DOI). No network call.
+    doi = extract_doi(@input.sub(/\ADOI:\s*/i, ""))
     return doi if doi
 
-    # 2. If input looks like a URL, fetch it and look for DOI in meta tags
-    if @input.match?(%r{\Ahttps?://}i)
-      doi = extract_doi_from_url(@input)
-      return doi if doi
-    end
+    # 2. The input is a URL with no DOI in the path: fetch it (SSRF-guarded)
+    #    and scrape the DOI from its HTML metadata.
+    return doi_from_url(@input) if @input.match?(%r{\Ahttps?://}i)
 
-    # 3. Strip common prefixes as last resort
-    cleaned = @input.gsub(/\ADOI:\s*/i, "").strip
-    extract_doi(cleaned) || cleaned
+    nil
   end
 
   private
@@ -30,47 +35,24 @@ class DoiResolver
     match = text.match(DOI_PATTERN)
     return nil unless match
 
-    # Strip trailing punctuation that isn't part of the DOI
+    # Strip trailing punctuation that is not part of the DOI.
     match[1].gsub(/[.,;)\]}>]+\z/, "")
   end
 
-  def extract_doi_from_url(url)
-    uri = URI.parse(url)
-    response = http_get(uri, headers: { "Accept" => "text/html" })
+  def doi_from_url(url)
+    body = safe_http_get_body(url, headers: { "Accept" => "text/html" })
+    return nil if body.nil?
 
-    # Follow redirects (up to 3)
-    3.times do
-      break unless response.is_a?(Net::HTTPRedirection)
-
-      location = response["location"]
-      # If redirected to doi.org, extract DOI from the URL
-      doi = extract_doi(location)
-      return doi if doi
-
-      uri = URI.parse(location)
-      response = http_get(uri, headers: { "Accept" => "text/html" })
-    end
-
-    return nil unless response.is_a?(Net::HTTPSuccess)
-
-    body = response.body.to_s
-
-    # Look for DOI in common meta tags
-    meta_patterns = [
-      /citation_doi["']\s+content=["']([^"']+)/i,
-      /DC\.identifier["']\s+content=["']([^"']+)/i,
-      /prism\.doi["']\s+content=["']([^"']+)/i,
-      /doi["']\s*:\s*["']([^"']+)/i
-    ]
-
-    meta_patterns.each do |pattern|
+    META_PATTERNS.each do |pattern|
       match = body.match(pattern)
-      return extract_doi(match[1]) || match[1].strip if match
+      return (extract_doi(match[1]) || clean(match[1])) if match
     end
 
-    # Fallback: find any DOI pattern in the page
+    # Fallback: any DOI-looking string in the page.
     extract_doi(body)
-  rescue URI::InvalidURIError, SocketError, Errno::ECONNREFUSED, Net::OpenTimeout
-    nil
+  end
+
+  def clean(value)
+    value.to_s.strip.presence
   end
 end
