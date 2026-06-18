@@ -9,15 +9,15 @@ module Scoring
 
       max_h = @profiles.filter_map { |p| p[:h_index] }.max || 0
       all_affiliated = @profiles.all? { |p| p[:institutions]&.any? }
-      level, color, detail = compute(max_h, all_affiliated)
+      level, color = compute(max_h, all_affiliated)
 
       {
-        criterion:   "Author track record",
-        value:       "Max h-index: #{max_h}",
+        criterion:   I18n.t("scoring.author_track_record.name"),
+        value:       I18n.t("scoring.author_track_record.value", max_h: max_h),
         level:       level,
         max_level:   3,
         color:       color,
-        explanation: detail
+        explanation: explanation(level, max_h, all_affiliated)
       }
     end
 
@@ -25,24 +25,33 @@ module Scoring
 
     def compute(max_h, all_affiliated)
       if max_h >= 20 && all_affiliated
-        [ 3, "green", "At least one author is an established researcher (h-index >= 20) with institutional affiliation." ]
+        [ 3, "green" ]
       elsif max_h >= 10 || all_affiliated
-        [ 2, "yellow", "Authors with publication experience. #{all_affiliated ? 'All affiliated with institutions.' : "Max h-index of #{max_h}."}" ]
+        [ 2, "yellow" ]
       elsif max_h >= 3
-        [ 1, "orange", "Authors with few publications. Consider in the context of the field." ]
+        [ 1, "orange" ]
       else
-        [ 0, "red", "Authors with no significant publication history or insufficient data." ]
+        [ 0, "red" ]
+      end
+    end
+
+    def explanation(level, max_h, all_affiliated)
+      case level
+      when 3 then I18n.t("scoring.author_track_record.l3")
+      when 2 then all_affiliated ? I18n.t("scoring.author_track_record.l2_affiliated") : I18n.t("scoring.author_track_record.l2_h_index", max_h: max_h)
+      when 1 then I18n.t("scoring.author_track_record.l1")
+      else        I18n.t("scoring.author_track_record.l0")
       end
     end
 
     def unavailable
       {
-        criterion:   "Author track record",
-        value:       "Data unavailable",
+        criterion:   I18n.t("scoring.author_track_record.name"),
+        value:       I18n.t("scoring.author_track_record.value_unavailable"),
         level:       nil,
         max_level:   3,
         color:       "gray",
-        explanation: "Unable to retrieve author profiles from OpenAlex."
+        explanation: I18n.t("scoring.author_track_record.unavailable")
       }
     end
   end

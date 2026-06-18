@@ -8,15 +8,15 @@ module Scoring
       return unavailable if @data.nil? || @data[:checked].zero?
 
       count = @data[:retracted_count]
-      level, color, detail = compute(count)
+      level, color = compute(count)
 
       result = {
-        criterion:   "Retracted references",
-        value:       count.zero? ? "No retracted references" : "#{count} retracted reference(s)",
+        criterion:   I18n.t("scoring.retracted_references.name"),
+        value:       value_for(count),
         level:       level,
         max_level:   2,
         color:       color,
-        explanation: detail
+        explanation: explanation(count)
       }
 
       if @data[:retracted_dois].any?
@@ -30,23 +30,33 @@ module Scoring
 
     def compute(count)
       case count
-      when 0
-        [ 2, "green", "None of the #{@data[:checked]} cited references have been retracted." ]
-      when 1
-        [ 1, "orange", "One cited reference has been retracted. Check if the article's conclusions depend on this source." ]
-      else
-        [ 0, "red", "#{count} cited references have been retracted. The article's conclusions may be compromised." ]
+      when 0 then [ 2, "green" ]
+      when 1 then [ 1, "orange" ]
+      else        [ 0, "red" ]
+      end
+    end
+
+    def value_for(count)
+      return I18n.t("scoring.retracted_references.value_none") if count.zero?
+      I18n.t("scoring.retracted_references.value_some", count: count)
+    end
+
+    def explanation(count)
+      case count
+      when 0 then I18n.t("scoring.retracted_references.l2", checked: @data[:checked])
+      when 1 then I18n.t("scoring.retracted_references.l1")
+      else        I18n.t("scoring.retracted_references.l0", count: count)
       end
     end
 
     def unavailable
       {
-        criterion:   "Retracted references",
-        value:       "Not verifiable",
+        criterion:   I18n.t("scoring.retracted_references.name"),
+        value:       I18n.t("scoring.retracted_references.value_unverifiable"),
         level:       nil,
         max_level:   2,
         color:       "gray",
-        explanation: "No references available to check for retractions."
+        explanation: I18n.t("scoring.retracted_references.unavailable")
       }
     end
   end

@@ -54,11 +54,14 @@ Rails.application.configure do
   config.i18n.fallbacks = true
 
   # Enable DNS rebinding protection and other `Host` header attacks.
-  # config.hosts = [
-  #   "example.com",     # Allow requests from example.com
-  #   /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`
-  # ]
-  #
+  # Requests are restricted to Render's default domain plus any hosts listed in
+  # SCICHECK_HOSTS (comma-separated) for custom domains. The /up health check is
+  # excluded below, so Render's probes pass regardless of Host header.
+  config.hosts << /.*\.onrender\.com/
+  ENV.fetch("SCICHECK_HOSTS", "").split(",").map(&:strip).reject(&:empty?).each do |host|
+    config.hosts << host
+  end
+
   # Skip DNS rebinding protection for the default health check endpoint.
-  # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+  config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 end

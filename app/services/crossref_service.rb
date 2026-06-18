@@ -1,21 +1,18 @@
-require "net/http"
-require "json"
-
 class CrossrefService
   include HttpClient
 
   BASE_URL = "https://api.crossref.org/works"
 
   def initialize(doi)
-    @doi = doi.strip
+    @doi = doi.to_s.strip
   end
 
   def fetch
-    uri = URI("#{BASE_URL}/#{URI.encode_www_form_component(@doi)}")
-    response = http_get(uri)
-    return nil unless response.is_a?(Net::HTTPSuccess)
+    return nil if @doi.empty?
 
-    data = JSON.parse(response.body).dig("message")
+    # mailto in the query string puts us in Crossref's "polite pool".
+    uri  = URI("#{BASE_URL}/#{URI.encode_www_form_component(@doi)}?mailto=#{Scicheck::Config::CONTACT_EMAIL}")
+    data = get_json(uri)&.dig("message")
     return nil unless data
 
     {
@@ -66,7 +63,7 @@ class CrossrefService
     refs.filter_map { |r| r["DOI"] }
   end
 
-  # Crossref wraps abstracts in JATS XML tags — we strip them
+  # Crossref wraps abstracts in JATS XML tags — we strip them.
   def clean_abstract(text)
     text&.gsub(/<[^>]+>/, "")&.strip
   end

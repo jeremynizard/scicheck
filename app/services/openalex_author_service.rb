@@ -1,13 +1,9 @@
-require "net/http"
-require "json"
-
 class OpenalexAuthorService
   include HttpClient
 
-  BASE_URL = "https://api.openalex.org/authors"
-  EMAIL = "contact@scicheck.app"
-  MAX_AUTHORS = 5
-  THREAD_TIMEOUT = 3
+  BASE_URL       = "https://api.openalex.org/authors"
+  MAX_AUTHORS    = 5
+  THREAD_TIMEOUT = 6
 
   def initialize(authorships)
     @authorships = (authorships || []).first(MAX_AUTHORS)
@@ -17,7 +13,7 @@ class OpenalexAuthorService
     return [] if @authorships.empty?
 
     profiles = []
-    mutex = Mutex.new
+    mutex    = Mutex.new
 
     threads = @authorships.filter_map do |author|
       openalex_id = author[:openalex_id]
@@ -29,6 +25,8 @@ class OpenalexAuthorService
       end
     end
 
+    # Each request already has its own read/open timeout, so join with a
+    # generous ceiling: it bounds the wait without leaving sockets hanging.
     threads.each { |t| t.join(THREAD_TIMEOUT) }
     profiles
   end
@@ -36,22 +34,19 @@ class OpenalexAuthorService
   private
 
   def fetch_author(openalex_id, name)
-    # openalex_id is a full URL like "https://openalex.org/A1234"
-    id = openalex_id.split("/").last
-    uri = URI("#{BASE_URL}/#{id}?mailto=#{EMAIL}")
-    response = http_get(uri, headers: { "User-Agent" => "SciCheck/1.0 (mailto:#{EMAIL})" })
-    return nil unless response.is_a?(Net::HTTPSuccess)
-
-    data = JSON.parse(response.body)
+    # openalex_id is a full URL like "https://openalex.org/A1234".
+    id   = openalex_id.split("/").last
+    uri  = URI("#{BASE_URL}/#{id}?mailto=#{Scicheck::Config::CONTACT_EMAIL}")
+    data = get_json(uri)
+    return nil unless data
 
     {
+      openalex_id:  openalex_id,
       name:         name || data["display_name"],
       h_index:      data.dig("summary_stats", "h_index"),
       works_count:  data["works_count"],
       institutions: extract_institutions(data["affiliations"])
     }
-  rescue StandardError
-    nil
   end
 
   def extract_institutions(affiliations)

@@ -507,3 +507,51 @@ main {
   margin-left: auto;
   margin-right: auto;
 }
+
+/* ========================
+   REFONTE: NEW ELEMENTS
+======================== */
+.retracted-banner {
+  font-size: 0.95rem;
+  border-width: 2px;
+}
+
+.coverage-note {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  margin: 0 0 24px;
+}
+
+.score-notice {
+  font-size: 0.8rem;
+  color: var(--orange);
+  margin: 6px 0 0;
+}
+
+.criterion-source {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin: 4px 0 0;
+}
+
+.lang-switch {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.8rem;
+}
+.lang-switch a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+.lang-switch a:hover { color: var(--text); }
+.lang-current {
+  font-weight: 600;
+  color: var(--text);
+}
