@@ -8,6 +8,10 @@ en:
     not_found: "DOI not found: %{doi}. Please check it and try again."
     invalid_link: "Invalid analysis link."
     expired: "This analysis is no longer available."
+  pending:
+    title: "Analysis in progress…"
+    detail: "Querying Crossref, OpenAlex, PubMed and PubPeer."
+    noscript: "This page refreshes automatically. Please wait."
   home:
     heading: "Evaluate the quality of a scientific article"
     intro: "Enter a DOI to get an independent analysis based on objective methodological criteria."

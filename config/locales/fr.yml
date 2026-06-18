@@ -8,6 +8,10 @@ fr:
     not_found: "DOI introuvable : %{doi}. Vérifiez-le et réessayez."
     invalid_link: "Lien d'analyse invalide."
     expired: "Cette analyse n'est plus disponible."
+  pending:
+    title: "Analyse en cours…"
+    detail: "Interrogation de Crossref, OpenAlex, PubMed et PubPeer."
+    noscript: "Cette page se rafraîchit automatiquement. Veuillez patienter."
   home:
     heading: "Évaluez la qualité d'un article scientifique"
     intro: "Saisissez un DOI pour obtenir une analyse indépendante fondée sur des critères méthodologiques objectifs."

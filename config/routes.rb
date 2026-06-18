@@ -3,6 +3,7 @@ Rails.application.routes.draw do
 
   root "analyses#new"
   get  "analyses/new", to: "analyses#new", as: :new_analysis
-  post "analyses",     to: "analyses#create", as: :analyses
-  get  "analyses/:id", to: "analyses#show",  as: :analysis
+  post "analyses",            to: "analyses#create", as: :analyses
+  get  "analyses/:id",        to: "analyses#show",   as: :analysis
+  get  "analyses/:id/status", to: "analyses#status", as: :analysis_status
 end

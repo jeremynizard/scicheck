@@ -1,0 +1,16 @@
+<div class="home pending-state">
+  <div class="hero">
+    <div class="loading-box"
+         data-controller="poll"
+         data-poll-url-value="<%= @status_url %>"
+         data-poll-interval-value="2000">
+      <div class="spinner"></div>
+      <p class="loading-title"><%= t("pending.title") %></p>
+      <p class="loading-detail"><%= t("pending.detail") %></p>
+      <noscript>
+        <meta http-equiv="refresh" content="3">
+        <p><%= t("pending.noscript") %></p>
+      </noscript>
+    </div>
+  </div>
+</div>
