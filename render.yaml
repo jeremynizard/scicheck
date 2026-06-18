@@ -10,6 +10,7 @@ services:
       - key: RAILS_MASTER_KEY
         sync: false
       # A real, monitored address for the Crossref/OpenAlex/NCBI polite pools.
+      # Set the value in the Render dashboard (sync: false → not stored here).
       - key: SCICHECK_CONTACT_EMAIL
         sync: false
       # Optional: raises the PubMed rate limit from 3 to 10 req/s.
