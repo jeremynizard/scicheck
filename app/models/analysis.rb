@@ -8,7 +8,7 @@
 class Analysis < ApplicationRecord
   serialize :payload, coder: YAML, type: Hash
 
-  validates :doi, presence: true, uniqueness: true
+  validates :doi, presence: true, uniqueness: { scope: :locale }
 
   def result = payload[:result]
   def meta   = payload[:meta]
@@ -17,9 +17,15 @@ class Analysis < ApplicationRecord
     computed_at.present? && computed_at > Time.current - ttl
   end
 
-  # Upsert the record for a DOI from a freshly-computed payload.
-  def self.store(doi, payload)
-    record = find_or_initialize_by(doi: doi)
+  # Results carry translated text and a localized AI summary, so they are keyed
+  # by (DOI, locale): a French viewer never sees an English-computed result.
+  def self.for(doi, locale)
+    find_by(doi: doi, locale: locale.to_s)
+  end
+
+  # Upsert the record for a (DOI, locale) from a freshly-computed payload.
+  def self.store(doi, locale, payload)
+    record = find_or_initialize_by(doi: doi, locale: locale.to_s)
     record.payload      = payload
     record.global_score = payload.dig(:result, :global_score)
     record.grade        = payload.dig(:result, :grade)

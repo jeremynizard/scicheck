@@ -62,4 +62,9 @@ class AnalysisRunnerTest < ActiveSupport::TestCase
     stub_all(openalex_status: 404, crossref_status: 404)
     assert_nil AnalysisRunner.new("10.1/missing").call
   end
+
+  test "AI insights are absent when the LLM is disabled (default)" do
+    stub_all
+    assert_nil AnalysisRunner.new("10.1/x").call[:ai]
+  end
 end

@@ -76,6 +76,10 @@ fr:
     abstract: "Résumé"
     analyze_another: "Analyser un autre article"
     na: "N/D"
+    ai:
+      title: "Lecture assistée par IA"
+      experimental: "expérimental"
+      disclaimer: "Généré par un modèle d'IA à partir du seul résumé — cela peut être incomplet ou erroné, et n'influence pas le score ci-dessus. Lisez toujours l'article complet."
     disclaimer: "SciCheck est un outil d'aide à la lecture critique. Il ne remplace pas l'évaluation par des experts, et ses indicateurs sont automatisés et imparfaits. Utilisez ce score comme point de départ, pas comme un verdict."
   scoring:
     study_type:

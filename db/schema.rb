@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_19_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_19_000002) do
   create_table "analyses", force: :cascade do |t|
     t.datetime "accessed_at"
     t.datetime "computed_at"
@@ -18,8 +18,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_19_000001) do
     t.string "doi", null: false
     t.integer "global_score"
     t.string "grade"
+    t.string "locale", default: "en", null: false
     t.text "payload"
     t.datetime "updated_at", null: false
-    t.index ["doi"], name: "index_analyses_on_doi", unique: true
+    t.index ["doi", "locale"], name: "index_analyses_on_doi_and_locale", unique: true
   end
 end

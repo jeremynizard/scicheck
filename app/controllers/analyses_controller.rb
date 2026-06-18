@@ -34,6 +34,7 @@ class AnalysesController < ApplicationController
 
     @result = payload[:result]
     @meta   = payload[:meta]
+    @ai     = payload[:ai]
   end
 
   private
@@ -41,16 +42,16 @@ class AnalysesController < ApplicationController
   # Durable, DB-backed: a result URL keeps working across restarts, and we keep
   # a history. Recomputes when missing or stale; returns the payload or nil.
   def load_or_run(doi)
-    record = Analysis.find_by(doi: doi)
+    record = Analysis.for(doi, I18n.locale)
     if record&.fresh?
       record.update_column(:accessed_at, Time.current)
       return record.payload
     end
 
-    payload = AnalysisRunner.new(doi).call
+    payload = AnalysisRunner.new(doi, locale: I18n.locale).call
     return nil if payload.nil?
 
-    Analysis.store(doi, payload)
+    Analysis.store(doi, I18n.locale, payload)
     payload
   end
 

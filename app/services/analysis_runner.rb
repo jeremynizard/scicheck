@@ -5,8 +5,9 @@
 # Kept free of any web/caching concerns so it can be unit-tested in isolation
 # and reused (e.g. from a background job later).
 class AnalysisRunner
-  def initialize(doi)
-    @doi = doi.to_s.strip
+  def initialize(doi, locale: I18n.locale)
+    @doi    = doi.to_s.strip
+    @locale = locale
   end
 
   def call
@@ -21,10 +22,19 @@ class AnalysisRunner
     result = Scoring::Aggregator.new(scores, retracted: openalex&.dig(:is_retracted) == true).aggregate
     meta   = build_meta(crossref, openalex, profiles)
 
-    { doi: @doi, result: result, meta: meta }
+    { doi: @doi, result: result, meta: meta, ai: ai_insights(meta) }
   end
 
   private
+
+  # Optional AI layer — informational only, never affects the score. Failures
+  # (no key, error) just yield nil so the block is hidden.
+  def ai_insights(meta)
+    AiInsights.new(meta, @locale).generate
+  rescue StandardError => e
+    Rails.logger.error("[AnalysisRunner] AI insights: #{e.class}: #{e.message}") if defined?(Rails)
+    nil
+  end
 
   def fetch_primary
     crossref = openalex = pubpeer = nil
