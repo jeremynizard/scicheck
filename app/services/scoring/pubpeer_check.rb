@@ -1,4 +1,7 @@
 module Scoring
+  # Post-publication scrutiny on PubPeer. Any comment is a flag *for manual
+  # review*, not proof of fault (the public API exposes only a count). The
+  # aggregator applies a graded, not all-or-nothing, cap.
   class PubpeerCheck
     def initialize(pubpeer_data)
       @data = pubpeer_data
@@ -8,25 +11,26 @@ module Scoring
       return unavailable if @data.nil?
 
       if @data[:has_comments]
+        count = @data[:comment_count].to_i
         {
-          criterion:     "Post-publication flags",
-          value:         "#{@data[:comment_count]} comment(s) on PubPeer",
+          criterion:     I18n.t("scoring.pubpeer.name"),
+          value:         I18n.t("scoring.pubpeer.value_comments", count: count),
           level:         0,
           max_level:     1,
-          color:         "red",
-          explanation:   "This article has been flagged on PubPeer by researchers. " \
-                         "This may indicate errors, suspicious images, or methodological issues.",
+          color:         count >= 3 ? "red" : "orange",
+          comment_count: count,
+          explanation:   I18n.t("scoring.pubpeer.flagged"),
           pubpeer_url:   @data[:url]
         }
       else
         {
-          criterion:     "Post-publication flags",
-          value:         "No PubPeer flags",
+          criterion:     I18n.t("scoring.pubpeer.name"),
+          value:         I18n.t("scoring.pubpeer.value_none"),
           level:         1,
           max_level:     1,
           color:         "green",
-          explanation:   "No critical comments have been reported on PubPeer for this article. " \
-                         "Note: absence of flags does not guarantee absence of problems.",
+          comment_count: 0,
+          explanation:   I18n.t("scoring.pubpeer.clean"),
           pubpeer_url:   nil
         }
       end
@@ -36,12 +40,12 @@ module Scoring
 
     def unavailable
       {
-        criterion:   "Post-publication flags",
-        value:       "Data unavailable",
+        criterion:   I18n.t("scoring.pubpeer.name"),
+        value:       I18n.t("scoring.pubpeer.value_unavailable"),
         level:       nil,
         max_level:   1,
         color:       "gray",
-        explanation: "Unable to contact PubPeer for this article."
+        explanation: I18n.t("scoring.pubpeer.unavailable")
       }
     end
   end

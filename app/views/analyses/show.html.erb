@@ -1,14 +1,20 @@
 <div class="analysis">
 
+  <% if @meta[:retracted] || @result[:retracted] %>
+    <div class="flash flash--alert retracted-banner">
+      <%= t("results.retracted_banner_html") %>
+    </div>
+  <% end %>
+
   <%# --- Article header --- %>
   <div class="article-header">
     <div class="article-meta">
       <span class="article-journal"><%= @meta[:journal] %></span>
       <span class="article-date"><%= @meta[:published]&.strftime("%B %Y") rescue @meta[:published] %></span>
       <% if @meta[:oa_status] && @meta[:oa_status] != "closed" %>
-        <span class="oa-badge oa-badge--<%= @meta[:oa_status] %>"><%= @meta[:oa_status].capitalize %> Access</span>
+        <span class="oa-badge oa-badge--<%= @meta[:oa_status] %>"><%= t("results.access_badge", status: @meta[:oa_status].capitalize) %></span>
       <% elsif @meta[:oa_status] == "closed" %>
-        <span class="oa-badge oa-badge--closed">Closed Access</span>
+        <span class="oa-badge oa-badge--closed"><%= t("results.closed_access") %></span>
       <% end %>
     </div>
     <h1 class="article-title"><%= @meta[:title] %></h1>
@@ -24,7 +30,7 @@
         <% end %>
       </div>
     <% end %>
-    <a href="https://doi.org/<%= @meta[:doi] %>" target="_blank" class="doi-link">
+    <a href="https://doi.org/<%= @meta[:doi] %>" target="_blank" rel="noopener" class="doi-link">
       doi.org/<%= @meta[:doi] %>
     </a>
   </div>
@@ -37,12 +43,25 @@
     <div class="global-details">
       <div class="global-number"><%= @result[:global_score] %><span>/100</span></div>
       <p class="global-summary"><%= @result[:summary] %></p>
+      <% if @result[:notices]&.include?(:pubpeer) %>
+        <p class="score-notice"><%= t("results.score_capped_pubpeer") %></p>
+      <% end %>
     </div>
   </div>
 
+  <%# --- Coverage transparency --- %>
+  <% if (cov = @result[:coverage]) %>
+    <p class="coverage-note">
+      <%= t("results.coverage_html", counted: cov[:counted], total: cov[:total], pct: (cov[:weight_used] * 100).round) %>
+      <% if cov[:unavailable].any? %>
+        <%= t("results.coverage_unavailable", list: cov[:unavailable].join(", ")) %>
+      <% end %>
+    </p>
+  <% end %>
+
   <%# --- Individual criteria --- %>
   <div class="criteria-section">
-    <h2>Criteria breakdown</h2>
+    <h2><%= t("results.criteria_breakdown") %></h2>
     <div class="criteria-list">
       <% @result[:criteria].each_value do |criterion| %>
         <div class="criterion-row criterion--<%= criterion[:color] %>">
@@ -55,16 +74,20 @@
                   <span class="meter-dot <%= i < criterion[:level] ? "dot--filled dot--#{criterion[:color]}" : "dot--empty" %>"></span>
                 <% end %>
               <% else %>
-                <span class="meter-na">N/A</span>
+                <span class="meter-na"><%= t("results.na") %></span>
               <% end %>
             </div>
           </div>
           <p class="criterion-explanation"><%= criterion[:explanation] %></p>
 
+          <% if criterion[:source_note] %>
+            <p class="criterion-source"><%= t("results.source_label", source: criterion[:source_note]) %></p>
+          <% end %>
+
           <%# PubPeer link if flagged %>
           <% if criterion[:pubpeer_url] %>
-            <a href="<%= criterion[:pubpeer_url] %>" target="_blank" class="pubpeer-link">
-              View comments on PubPeer
+            <a href="<%= criterion[:pubpeer_url] %>" target="_blank" rel="noopener" class="pubpeer-link">
+              <%= t("results.view_on_pubpeer") %>
             </a>
           <% end %>
 
@@ -79,7 +102,7 @@
             </div>
           <% end %>
 
-          <%# Detected Open Science patterns %>
+          <%# Detected items (Open Science signals, retracted reference DOIs) %>
           <% if criterion[:detected]&.any? %>
             <div class="detected-list">
               <% criterion[:detected].each do |d| %>
@@ -95,17 +118,14 @@
   <%# --- Abstract --- %>
   <% if @meta[:abstract].present? %>
     <div class="abstract-section">
-      <h2>Abstract</h2>
+      <h2><%= t("results.abstract") %></h2>
       <p class="abstract-text"><%= @meta[:abstract] %></p>
     </div>
   <% end %>
 
   <div class="actions">
-    <%= link_to "Analyze another article", new_analysis_path, class: "btn-analyze" %>
+    <%= link_to t("results.analyze_another"), new_analysis_path, class: "btn-analyze" %>
   </div>
 
-  <p class="disclaimer">
-    SciCheck is a tool for critical reading assistance. It does not replace expert peer review
-    and its indicators are automated. Use this score as a starting point, not a verdict.
-  </p>
+  <p class="disclaimer"><%= t("results.disclaimer") %></p>
 </div>

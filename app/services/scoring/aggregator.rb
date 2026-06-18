@@ -1,7 +1,6 @@
 module Scoring
   class Aggregator
-    # Weight of each criterion on the global score
-    # Weights must sum to 1.0
+    # Weight of each criterion on the global score. Must sum to 1.0.
     WEIGHTS = {
       study_type:            0.25,
       review_pedigree:       0.20,
@@ -13,28 +12,52 @@ module Scoring
       author_track_record:   0.05
     }.freeze
 
-    def initialize(scores)
-      @scores = scores
+    # Caps applied after the weighted average (a great score on other axes
+    # cannot paper over a serious post-publication concern).
+    RETRACTED_CAP        = 12  # the analyzed article is itself retracted
+    PUBPEER_MAJOR_CAP    = 59  # >= 3 PubPeer comments
+    PUBPEER_MINOR_CAP    = 74  # 1-2 PubPeer comments
+
+    def initialize(scores, retracted: false)
+      @scores    = scores
+      @retracted = retracted
     end
 
     def aggregate
-      global = compute_global_score
-      # A PubPeer-flagged article cannot score above C (59/100)
-      global = [ global, 59 ].min if pubpeer_flagged?
+      global  = compute_global_score
+      notices = []
+
+      if @retracted
+        global = [ global, RETRACTED_CAP ].min
+        notices << :retracted
+      elsif (cap = pubpeer_cap) && global > cap
+        global = cap
+        notices << :pubpeer
+      end
 
       {
         global_score: global,
         grade:        grade(global),
         color:        grade_color(global),
         summary:      summary(global),
-        criteria:     @scores
+        criteria:     @scores,
+        coverage:     coverage,
+        notices:      notices,
+        retracted:    @retracted
       }
     end
 
     private
 
-    def pubpeer_flagged?
-      @scores.dig(:pubpeer, :level) == 0
+    # Graded cap based on how many PubPeer comments exist.
+    def pubpeer_cap
+      pp = @scores[:pubpeer]
+      return nil unless pp && pp[:level] == 0
+
+      count = pp[:comment_count].to_i
+      return nil if count.zero? # level 0 with no counted comments → don't cap
+
+      count >= 3 ? PUBPEER_MAJOR_CAP : PUBPEER_MINOR_CAP
     end
 
     def compute_global_score
@@ -45,14 +68,36 @@ module Scoring
         score = @scores[key]
         next if score.nil? || score[:level].nil?
 
-        # Normalize score to 100
-        normalized = (score[:level].to_f / score[:max_level]) * 100
-        weighted_sum  += normalized * weight
-        total_weight  += weight
+        normalized   = (score[:level].to_f / score[:max_level]) * 100
+        weighted_sum += normalized * weight
+        total_weight += weight
       end
 
       return 0 if total_weight.zero?
       (weighted_sum / total_weight).round
+    end
+
+    # Transparency about renormalization: how many criteria actually counted,
+    # so the UI can disclose that the score rests on a subset.
+    def coverage
+      counted     = []
+      unavailable = []
+
+      WEIGHTS.each_key do |key|
+        score = @scores[key]
+        if score.nil? || score[:level].nil?
+          unavailable << (score&.dig(:criterion) || key.to_s.tr("_", " ").capitalize)
+        else
+          counted << key
+        end
+      end
+
+      {
+        counted:     counted.size,
+        total:       WEIGHTS.size,
+        weight_used: WEIGHTS.values_at(*counted).sum.round(2),
+        unavailable: unavailable
+      }
     end
 
     def grade(score)
@@ -76,18 +121,14 @@ module Scoring
     end
 
     def summary(score)
-      case score
-      when 80..100
-        "Good methodological quality. Key criteria are met."
-      when 60..79
-        "Acceptable article. Some points of concern identified."
-      when 40..59
-        "Average quality. Several important criteria are not met."
-      when 20..39
-        "Low quality article. Read with caution and cross-reference with other sources."
-      else
-        "Very low quality or from an unreliable source."
+      key = case score
+      when 80..100 then :a
+      when 60..79  then :b
+      when 40..59  then :c
+      when 20..39  then :d
+      else              :e
       end
+      I18n.t("scoring.aggregator.summary.#{key}")
     end
   end
 end
