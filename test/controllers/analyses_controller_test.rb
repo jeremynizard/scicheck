@@ -52,6 +52,18 @@ class AnalysesControllerTest < ActionDispatch::IntegrationTest
     assert_select ".article-title", text: "The Journal"
   end
 
+  test "a stored result is served from the DB on later views (durable, no re-query)" do
+    stub_all
+    post analyses_path, params: { doi: "10.1234/x" }
+    assert_equal 1, Analysis.where(doi: "10.1234/x").count
+
+    # Drop every stub: a second view must be served from the DB with zero HTTP.
+    WebMock.reset!
+    get analysis_path(Base64.urlsafe_encode64("10.1234/x", padding: false))
+    assert_response :success
+    assert_select ".grade-circle"
+  end
+
   test "an invalid result id redirects home" do
     get analysis_path("not-base64-doi!!")
     assert_redirected_to new_analysis_path

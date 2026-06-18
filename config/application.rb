@@ -4,7 +4,7 @@ require "rails"
 # Pick the frameworks you want:
 require "active_model/railtie"
 require "active_job/railtie"
-# require "active_record/railtie"
+require "active_record/railtie"
 # require "active_storage/engine"
 require "action_controller/railtie"
 # require "action_mailer/railtie"
@@ -46,5 +46,11 @@ module Scicheck
     config.i18n.available_locales = %i[en fr]
     config.i18n.default_locale = :en
     config.i18n.fallbacks = true
+
+    # The cached analysis payload is YAML-serialized and contains Symbols and
+    # Dates — permit them so it round-trips through the DB column.
+    config.active_record.yaml_column_permitted_classes = [
+      Symbol, Date, Time, ActiveSupport::TimeWithZone, ActiveSupport::TimeZone, BigDecimal
+    ]
   end
 end

@@ -1,5 +1,4 @@
 require "base64"
-require "digest"
 
 class AnalysesController < ApplicationController
   # A well-formed DOI, used both to extract and to validate the id from the URL.
@@ -39,14 +38,20 @@ class AnalysesController < ApplicationController
 
   private
 
+  # Durable, DB-backed: a result URL keeps working across restarts, and we keep
+  # a history. Recomputes when missing or stale; returns the payload or nil.
   def load_or_run(doi)
-    Rails.cache.fetch(cache_key(doi), expires_in: Scicheck::Config::ANALYSIS_CACHE_TTL, skip_nil: true) do
-      AnalysisRunner.new(doi).call
+    record = Analysis.find_by(doi: doi)
+    if record&.fresh?
+      record.update_column(:accessed_at, Time.current)
+      return record.payload
     end
-  end
 
-  def cache_key(doi)
-    "analysis/v2/#{Digest::SHA256.hexdigest(doi)}"
+    payload = AnalysisRunner.new(doi).call
+    return nil if payload.nil?
+
+    Analysis.store(doi, payload)
+    payload
   end
 
   def encode_id(doi)
