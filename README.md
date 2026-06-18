@@ -1,15 +1,39 @@
 # SciCheck
 
-A Rails web app that gives the general public a fast, transparent, **automated** read on the methodological quality of a scientific article — enter a DOI (or an article URL), get a 0–100 score (A–E) broken down across eight criteria.
+**A Nutri-Score for scientific papers.** Paste a DOI and get a single **A–E trust grade** — plus a per-criterion breakdown of *why* a study is, or isn't, trustworthy.
+
+Most readers — students, clinicians and patients alike — can't quickly tell a rigorous study from a weak one. Existing tools either arrive too late (they only help once someone has already flagged your exact paper) or are built to help you read faster and trust the paper by default. SciCheck does the opposite: it surfaces the red flags **at the moment you're reading**.
 
 > SciCheck is a critical-reading **aid**, not a verdict. Its indicators are automated and imperfect and do not replace expert peer review. See [docs/METHODOLOGY.md](docs/METHODOLOGY.md) for what each criterion does and does *not* measure.
+
+## How it works
+
+1. Paste a DOI (or a publisher URL). `DoiResolver` normalizes it (SSRF-guarded).
+2. SciCheck fans out **in parallel** to public scholarly APIs — **Crossref, OpenAlex, PubPeer** — then a second wave to **PubMed** (real study design via MeSH), reference-retraction status, and author profiles.
+3. **Eight weighted, fully deterministic criteria** are aggregated into a 0–100 score, an A–E grade, a color, and a plain-English summary.
+
+| Criterion | Weight |
+|---|---:|
+| Study type (evidence pyramid) | 25% |
+| Journal pedigree | 20% |
+| Peer-review turnaround | 15% |
+| Open-science signals | 10% |
+| PubPeer flags | 10% |
+| Citation profile | 8% |
+| Retracted references in the bibliography | 7% |
+| Author track record | 5% |
+
+> **Graded caps:** PubPeer comments cap the score (1–2 → 74, 3+ → 59); a retracted article is hard-capped at 12 (grade E), whatever the rest of the score.
+
+The scoring is **fully deterministic** — no LLM in the loop — so the same paper always gets the same grade, and every grade is explainable. The result page also discloses how many of the eight criteria actually had data ("coverage").
 
 ## Stack
 
 - **Ruby** 3.3.5, **Rails** 8.1 (importmap, Stimulus, Turbo — no React)
-- **No database**: scores are computed on the fly and cached (Rails.cache). Results are addressable/shareable via a Post/Redirect/Get flow.
+- **No database**: scores are computed on the fly and cached (Rails.cache). Results are addressable/shareable via a Post/Redirect/Get flow (no re-POST on refresh).
 - External data: **Crossref**, **OpenAlex**, **PubMed E-utilities**, **PubPeer**.
 - **Bilingual** (English default, French) — switch via the header or `?locale=fr`.
+- Dockerized; deployed on Render; GitHub Actions CI (tests, RuboCop, Brakeman, bundler-audit); PWA scaffolding.
 
 ## Setup
 
@@ -63,8 +87,16 @@ AnalysisRunner      → orchestrates two parallel waves of API calls, builds sco
   Scoring::Aggregator → weighted average + renormalization, graded caps, coverage disclosure
 ```
 
-See [docs/METHODOLOGY.md](docs/METHODOLOGY.md) for the scoring details and known limitations, and [docs/ROADMAP.md](docs/ROADMAP.md) for what's next.
+See [docs/METHODOLOGY.md](docs/METHODOLOGY.md) for the scoring details and candid known limitations, and [docs/ROADMAP.md](docs/ROADMAP.md) for what's next.
 
 ## Deployment
 
 Configured for [Render](https://render.com) via [render.yaml](render.yaml) (Docker). Set `RAILS_MASTER_KEY` and `SCICHECK_CONTACT_EMAIL` in the dashboard. The free plan uses ephemeral disk, so the analysis cache resets on restart — result URLs self-heal by recomputing on a cache miss.
+
+## Status
+
+Working end-to-end MVP — **not yet launched publicly**. The eight deterministic criteria are fully implemented and tested. On the roadmap: AI-assisted layers (abstract summarization, sample-size / p-value extraction, conflict-of-interest detection), non-biomedical fallbacks, and a browser extension.
+
+---
+
+A side project by [Jeremy Nizard](https://www.linkedin.com/in/jeremy-nizard/) — pharmacist (PharmD) and builder.
