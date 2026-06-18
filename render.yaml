@@ -9,3 +9,12 @@ services:
     envVars:
       - key: RAILS_MASTER_KEY
         sync: false
+      # A real, monitored address for the Crossref/OpenAlex/NCBI polite pools.
+      - key: SCICHECK_CONTACT_EMAIL
+        sync: false
+      # Optional: raises the PubMed rate limit from 3 to 10 req/s.
+      - key: NCBI_API_KEY
+        sync: false
+      # Optional: comma-separated custom domains (*.onrender.com is always allowed).
+      - key: SCICHECK_HOSTS
+        sync: false
