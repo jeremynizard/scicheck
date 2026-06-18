@@ -1,31 +1,190 @@
-# Files in the config/locales directory are used for internationalization and
-# are automatically loaded by Rails. If you want to use locales other than
-# English, add the necessary files in this directory.
-#
-# To use the locales, use `I18n.t`:
-#
-#     I18n.t "hello"
-#
-# In views, this is aliased to just `t`:
-#
-#     <%= t("hello") %>
-#
-# To use a different locale, set it with `I18n.locale`:
-#
-#     I18n.locale = :es
-#
-# This would use the information in config/locales/es.yml.
-#
-# To learn more about the API, please read the Rails Internationalization guide
-# at https://guides.rubyonrails.org/i18n.html.
-#
-# Be aware that YAML interprets the following case-insensitive strings as
-# booleans: `true`, `false`, `on`, `off`, `yes`, `no`. Therefore, these strings
-# must be quoted to be interpreted as strings. For example:
-#
-#     en:
-#       "yes": yup
-#       enabled: "ON"
-
 en:
-  hello: "Hello world"
+  language_name: "English"
+  app:
+    name: "SciCheck"
+    tagline: "Evaluate the quality of a scientific article"
+  flash:
+    invalid_doi: "Please enter a valid DOI or article URL (e.g. 10.1097/MS9.0000000000003127)."
+    not_found: "DOI not found: %{doi}. Please check it and try again."
+    invalid_link: "Invalid analysis link."
+    expired: "This analysis is no longer available."
+  home:
+    heading: "Evaluate the quality of a scientific article"
+    intro: "Enter a DOI to get an independent analysis based on objective methodological criteria."
+    placeholder: "e.g. 10.1097/MS9.0000000000003127"
+    analyze: "Analyze"
+    hint: "Accepts raw DOIs or doi.org URLs"
+    loading_title: "Analysis in progress..."
+    loading_detail: "Querying OpenAlex and Crossref databases"
+    what_we_analyze: "What we analyze"
+    source: "Source"
+    how_it_works: "How it works"
+    weight: "Weight"
+    weight_of_global: "%{pct}% of the global score"
+    cards:
+      study_type:
+        title: "Study type"
+        blurb: "EBM evidence pyramid ranking"
+        source: "PubMed publication types (MeSH), with OpenAlex / Crossref fallback"
+        how_html: "Reads the study <em>design</em> from PubMed's MeSH publication types — which (unlike a generic \"article\" label) distinguishes a systematic review or meta-analysis from a narrative review, and an RCT from a case report — and maps it onto the evidence-based-medicine pyramid. Scored from 0 (preprint) to 5 (meta-analysis / systematic review)."
+      review_pedigree:
+        title: "Journal pedigree"
+        blurb: "Indexed in PubMed, Scopus, DOAJ"
+        source: "OpenAlex source metadata (is_core, is_in_doaj, indexed_in)"
+        how: "Checks whether the journal is indexed in major databases. Indexed in both PubMed and Scopus = top score. DOAJ-only = limited credibility. Not found in any major index = standing could not be verified, interpret with caution."
+      review_process:
+        title: "Review rigor"
+        blurb: "Peer-review duration check"
+        source_html: "Crossref assertion dates, with PubMed history dates as fallback (received &rarr; accepted)"
+        how: "Measures the time between submission and acceptance. Under 3 weeks is a red flag (rubber-stamp review). 60–180 days is the normal range for a thorough peer review. Marked N/A when no publisher provides these dates."
+      open_science:
+        title: "Transparency"
+        blurb: "Data & code sharing signals"
+        source: "PubMed registered data banks & conflict-of-interest statement, plus abstract text (Crossref / OpenAlex)"
+        how_html: "Combines structured signals — registered data banks (ClinicalTrials.gov, GEO, Dryad&hellip;) and a conflict-of-interest statement — with mentions of data repositories (GitHub, Zenodo, OSF, Figshare&hellip;) in the abstract. Two or more signals = strong transparency."
+      pubpeer:
+        title: "PubPeer flags"
+        blurb: "Post-publication integrity check"
+        source: "PubPeer API"
+        how: "Checks whether the article has been discussed on PubPeer by researchers (e.g. image or statistical concerns). Comments aren't always negative, so the cap is graded: 1–2 comments cap the score at 74, 3+ comments at 59. Read the comments before judging."
+        weight_html: "10% of the global score (+ graded cap if flagged)"
+      citation_profile:
+        title: "Citation profile"
+        blurb: "Field-normalized citation impact"
+        source: "OpenAlex cited_by_percentile_year"
+        how_html: "Uses a percentile (0–99) normalized by field and publication year. Top 25% = green, 50–74 = yellow, 25–49 = orange, below 25 = red. Articles less than one year old are marked N/A."
+      retracted_references:
+        title: "Retracted references"
+        blurb: "Cited sources retraction check"
+        source_html: "Crossref reference DOIs &rarr; OpenAlex is_retracted filter"
+        how: "Extracts all cited DOIs from the reference list, then batch-queries OpenAlex to check if any have been retracted. Zero retracted = green. One = orange. Two or more = red."
+      author_track_record:
+        title: "Author track record"
+        blurb: "h-index & affiliations"
+        source: "OpenAlex Authors API (up to 5 authors)"
+        how_html: "Fetches h-index, publication count, and institutional affiliations for each author. At least one author with h-index ≥ 20 and an affiliation = top score. All authors below h-index 3 = red."
+  results:
+    retracted_banner_html: "⚠ This article has been <strong>RETRACTED</strong>. Its conclusions should not be relied upon."
+    closed_access: "Closed Access"
+    access_badge: "%{status} Access"
+    criteria_breakdown: "Criteria breakdown"
+    coverage_html: "Score computed from <strong>%{counted} of %{total}</strong> criteria (%{pct}% of the total weight)."
+    coverage_unavailable: "Not available: %{list}."
+    score_capped_pubpeer: "Score capped because of post-publication comments on PubPeer."
+    source_label: "Source: %{source}"
+    view_on_pubpeer: "View comments on PubPeer"
+    abstract: "Abstract"
+    analyze_another: "Analyze another article"
+    na: "N/A"
+    disclaimer: "SciCheck is a tool for critical-reading assistance. It does not replace expert peer review, and its indicators are automated and imperfect. Use this score as a starting point, not a verdict."
+  scoring:
+    study_type:
+      name: "Study type"
+      types:
+        meta_analysis: "Meta-analysis"
+        systematic_review: "Systematic review"
+        guideline: "Clinical practice guideline"
+        rct: "Randomized controlled trial"
+        controlled_trial: "Controlled clinical trial"
+        clinical_trial: "Clinical trial"
+        observational: "Observational study"
+        case_report: "Case report"
+        narrative_review: "Narrative review"
+        editorial_comment: "Editorial / comment"
+        editorial: "Editorial"
+        letter: "Letter"
+        cohort: "Cohort study"
+        retrospective_cohort: "Retrospective cohort study"
+        case_control: "Case-control study"
+        cross_sectional: "Cross-sectional study"
+        original_article: "Original article"
+        journal_article: "Journal article"
+        undetermined: "Article (type undetermined)"
+        preprint: "Preprint (not peer-reviewed)"
+      sources:
+        pubmed_pubtype: "PubMed publication type"
+        pubmed: "PubMed"
+        pubmed_mesh: "PubMed MeSH heading"
+        openalex_type: "OpenAlex type"
+        crossref_type: "Crossref type"
+        default: "default"
+      explanation:
+        l5: "Highest level of evidence: this synthesizes multiple primary studies."
+        l4: "High level of evidence. Randomization or formal evidence synthesis limits bias."
+        l3: "Moderate level of evidence. Informative but subject to selection/confounding bias."
+        l2: "Limited level of evidence. Conclusions should be confirmed by stronger study designs."
+        l1: "Low level of evidence. Do not generalize from this single observation or opinion."
+        l0: "Warning: this article has not been peer-reviewed."
+    review_pedigree:
+      name: "Journal pedigree"
+      unknown: "Unknown"
+      l3: "Journal indexed in major reference databases (PubMed, Scopus). High credibility."
+      l2: "Journal partially indexed. Reasonable credibility but worth verifying."
+      l1: "Journal listed in DOAJ but absent from major indexes. Verify its editorial standards."
+      l0: "Journal not found in major indexes (PubMed, Scopus, DOAJ). Its editorial standing could not be verified — interpret with caution."
+    review_process:
+      name: "Review rigor"
+      value: "%{days}-day review"
+      unavailable_value: "Data unavailable"
+      unavailable: "Submission/acceptance dates are not published for this article."
+      l0: "Accepted in under 3 weeks — possible sign of minimal peer review."
+      l1: "Fast review (%{days} days). Plausible, but on the low end for rigorous peer review."
+      l3: "Normal review duration (%{days} days), consistent with a serious review process."
+      l2: "Long review (%{days} days). May reflect major revisions or a slow process."
+      sources:
+        crossref: "Crossref dates"
+        pubmed: "PubMed history"
+    open_science:
+      name: "Transparency (Open Science)"
+      value: "%{count} transparency signal(s)"
+      value_none: "No signals detected"
+      registered: "Registered: %{name}"
+      coi: "Conflict-of-interest statement"
+      l0: "No data-sharing, registration, or COI signals detected."
+      l1: "One transparency signal detected. A good sign, but only partial openness."
+      l2: "Multiple transparency signals detected (registration, data sharing, COI). Strong openness."
+    pubpeer:
+      name: "Post-publication flags"
+      value_comments: "%{count} comment(s) on PubPeer"
+      value_none: "No PubPeer flags"
+      value_unavailable: "Data unavailable"
+      flagged: "This article has been discussed on PubPeer. Comments may flag errors, image/statistical concerns — or may be neutral questions. Read them before judging."
+      clean: "No comments reported on PubPeer for this article. Note: absence of flags does not guarantee absence of problems."
+      unavailable: "Unable to reach PubPeer for this article."
+    citation_profile:
+      name: "Citation profile"
+      value: "Percentile %{percentile}/100"
+      value_too_recent: "Too recent"
+      value_unavailable: "Data unavailable"
+      l3: "Highly cited article for its field and publication year (top %{top}%)."
+      l2: "Article in the upper half of citations for its field (percentile %{percentile})."
+      l1: "Article with below-average citations for its field and publication year."
+      l0: "Very low citation count compared to other publications in the same field."
+      too_recent: "Article published too recently to evaluate its citation impact."
+      unavailable: "Unable to retrieve citation data for this article."
+    retracted_references:
+      name: "Retracted references"
+      value_none: "No retracted references"
+      value_some: "%{count} retracted reference(s)"
+      value_unverifiable: "Not verifiable"
+      l2: "None of the %{checked} cited references have been retracted."
+      l1: "One cited reference has been retracted. Check if the article's conclusions depend on this source."
+      l0: "%{count} cited references have been retracted. The article's conclusions may be compromised."
+      unavailable: "No references available to check for retractions."
+    author_track_record:
+      name: "Author track record"
+      value: "Max h-index: %{max_h}"
+      value_unavailable: "Data unavailable"
+      l3: "At least one author is an established researcher (h-index >= 20) with institutional affiliation."
+      l2_affiliated: "Authors with publication experience. All affiliated with institutions."
+      l2_h_index: "Authors with publication experience. Max h-index of %{max_h}."
+      l1: "Authors with few publications. Consider in the context of the field."
+      l0: "Authors with no significant publication history or insufficient data."
+      unavailable: "Unable to retrieve author profiles from OpenAlex."
+    aggregator:
+      summary:
+        a: "Good methodological quality. Key criteria are met."
+        b: "Acceptable article. Some points of concern identified."
+        c: "Average quality. Several important criteria are not met."
+        d: "Low quality. Read with caution and cross-reference with other sources."
+        e: "Very low quality, retracted, or from an unverifiable source."
