@@ -19,8 +19,9 @@ gem "stimulus-rails"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
 
-# XML parsing for PubMed E-utilities responses (default gem until Ruby 3.4)
+# XML / CSV parsing (default gems until Ruby 3.4) — PubMed XML, Retraction Watch CSV
 gem "rexml"
+gem "csv"
 
 # Rate limiting / throttling of abusive clients [https://github.com/rack/rack-attack]
 gem "rack-attack"

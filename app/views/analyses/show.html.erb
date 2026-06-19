@@ -3,6 +3,9 @@
   <% if @meta[:retracted] || @result[:retracted] %>
     <div class="flash flash--alert retracted-banner">
       <%= t("results.retracted_banner_html") %>
+      <% if @meta.dig(:retraction, :reason).present? %>
+        <span class="retracted-reason"><%= t("results.retracted_reason", reason: @meta[:retraction][:reason]) %></span>
+      <% end %>
     </div>
   <% end %>
 

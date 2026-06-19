@@ -67,4 +67,14 @@ class AnalysisRunnerTest < ActiveSupport::TestCase
     stub_all
     assert_nil AnalysisRunner.new("10.1/x").call[:ai]
   end
+
+  test "flags the article as retracted via Retraction Watch, with the reason and hard cap" do
+    stub_all # OpenAlex says is_retracted: false — Retraction Watch is the source here
+    RetractedPaper.create!(doi: "10.1/x", nature: "Retraction", reason: "Falsification of Data")
+
+    out = AnalysisRunner.new("10.1/x").call
+    assert out[:meta][:retracted]
+    assert_equal "Falsification of Data", out[:meta][:retraction][:reason]
+    assert_equal 12, out[:result][:global_score] # retracted-article hard cap
+  end
 end

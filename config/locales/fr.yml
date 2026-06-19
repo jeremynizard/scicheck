@@ -69,6 +69,7 @@ fr:
         how_html: "Récupère l'indice h, le nombre de publications et les affiliations institutionnelles de chaque auteur. Au moins un auteur avec un indice h ≥ 20 et une affiliation = score maximal. Tous les auteurs sous l'indice h 3 = rouge."
   results:
     retracted_banner_html: "⚠ Cet article a été <strong>RÉTRACTÉ</strong>. Ses conclusions ne doivent pas servir de référence."
+    retracted_reason: "Raison : %{reason}."
     closed_access: "Accès fermé"
     access_badge: "Accès %{status}"
     criteria_breakdown: "Détail des critères"

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_19_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_19_000003) do
   create_table "analyses", force: :cascade do |t|
     t.datetime "accessed_at"
     t.datetime "computed_at"
@@ -22,5 +22,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_19_000002) do
     t.text "payload"
     t.datetime "updated_at", null: false
     t.index ["doi", "locale"], name: "index_analyses_on_doi_and_locale", unique: true
+  end
+
+  create_table "retracted_papers", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "doi", null: false
+    t.string "nature"
+    t.text "reason"
+    t.date "retraction_date"
+    t.text "title"
+    t.datetime "updated_at", null: false
+    t.index ["doi"], name: "index_retracted_papers_on_doi", unique: true
   end
 end

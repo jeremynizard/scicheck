@@ -69,6 +69,7 @@ en:
         how_html: "Fetches h-index, publication count, and institutional affiliations for each author. At least one author with h-index ≥ 20 and an affiliation = top score. All authors below h-index 3 = red."
   results:
     retracted_banner_html: "⚠ This article has been <strong>RETRACTED</strong>. Its conclusions should not be relied upon."
+    retracted_reason: "Reason: %{reason}."
     closed_access: "Closed Access"
     access_badge: "%{status} Access"
     criteria_breakdown: "Criteria breakdown"

@@ -17,15 +17,41 @@ class AnalysisRunner
     return nil if crossref.nil? && openalex.nil?
 
     pubmed, retraction, profiles = fetch_secondary(crossref, openalex)
+    retraction = merge_retraction_watch(retraction, crossref&.dig(:references))
 
-    scores = build_scores(crossref, openalex, pubpeer, pubmed, retraction, profiles)
-    result = Scoring::Aggregator.new(scores, retracted: openalex&.dig(:is_retracted) == true).aggregate
+    scores    = build_scores(crossref, openalex, pubpeer, pubmed, retraction, profiles)
+    rw_record = RetractedPaper.for(@doi)
+    retracted = (openalex&.dig(:is_retracted) == true) || rw_record&.retraction? || false
+
+    result = Scoring::Aggregator.new(scores, retracted: retracted).aggregate
     meta   = build_meta(crossref, openalex, profiles)
+    meta[:retracted]  = retracted
+    meta[:retraction] = retraction_details(rw_record)
 
     { doi: @doi, result: result, meta: meta, ai: ai_insights(meta) }
   end
 
   private
+
+  # Fold any locally-known Retraction Watch retractions into the reference check
+  # (offline, no extra API calls), unioned with the OpenAlex result.
+  def merge_retraction_watch(retraction, references)
+    rw_dois = RetractedPaper.retracted_dois_among(references)
+    return retraction if rw_dois.empty?
+
+    base = retraction || { retracted_dois: [], checked: Array(references).length, retracted_count: 0 }
+    dois = (base[:retracted_dois] + rw_dois).uniq
+    base.merge(
+      retracted_dois:  dois,
+      retracted_count: dois.length,
+      checked:         [ base[:checked].to_i, Array(references).length ].max
+    )
+  end
+
+  def retraction_details(rw_record)
+    return nil unless rw_record
+    { nature: rw_record.nature, reason: rw_record.reason, date: rw_record.retraction_date }
+  end
 
   # Optional AI layer — informational only, never affects the score. Failures
   # (no key, error) just yield nil so the block is hidden.
