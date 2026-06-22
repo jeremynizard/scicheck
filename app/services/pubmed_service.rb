@@ -35,6 +35,9 @@ class PubmedService
       # MeSH headings, not publication types.
       mesh_terms:        texts(doc, "//MeshHeading/DescriptorName").first(40),
       has_coi_statement: coi_present?(doc),
+      # Abstract from PubMed — a crucial fallback: many articles (older,
+      # Elsevier, etc.) have no abstract in Crossref/OpenAlex but do in PubMed.
+      abstract:          abstract_text(doc),
       received_date:     history_date(doc, "received"),
       accepted_date:     history_date(doc, "accepted")
     }
@@ -56,6 +59,15 @@ class PubmedService
 
   def texts(doc, xpath)
     REXML::XPath.match(doc, xpath).filter_map { |el| el.text&.strip }.reject(&:empty?)
+  end
+
+  # Concatenate all <AbstractText> sections (structured abstracts have several),
+  # including any inline markup, into one plain-text string.
+  def abstract_text(doc)
+    parts = REXML::XPath.match(doc, "//Abstract/AbstractText").map do |el|
+      el.to_s.gsub(/<[^>]+>/, " ").gsub(/\s+/, " ").strip
+    end.reject(&:empty?)
+    parts.empty? ? nil : parts.join(" ")
   end
 
   def coi_present?(doc)

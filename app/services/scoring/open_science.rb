@@ -66,7 +66,7 @@ module Scoring
     end
 
     def abstract_text
-      (@crossref&.dig(:abstract).presence || @openalex&.dig(:abstract)).to_s
+      (@crossref&.dig(:abstract).presence || @openalex&.dig(:abstract).presence || @pubmed&.dig(:abstract)).to_s
     end
 
     def value_for(detected)
