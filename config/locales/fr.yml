@@ -4,7 +4,7 @@ fr:
     name: "SciCheck"
     tagline: "Évaluez la qualité d'un article scientifique"
   flash:
-    invalid_doi: "Veuillez saisir un DOI ou une URL d'article valide (p. ex. 10.1097/MS9.0000000000003127)."
+    invalid_doi: "Impossible de trouver un DOI pour cette saisie. Colle directement le DOI (p. ex. 10.1038/s41392-020-0207-x) ou un lien doi.org."
     not_found: "DOI introuvable : %{doi}. Vérifiez-le et réessayez."
     invalid_link: "Lien d'analyse invalide."
     expired: "Cette analyse n'est plus disponible."
@@ -17,7 +17,7 @@ fr:
     intro: "Saisissez un DOI pour obtenir une analyse indépendante fondée sur des critères méthodologiques objectifs."
     placeholder: "p. ex. 10.1097/MS9.0000000000003127"
     analyze: "Analyser"
-    hint: "Accepte les DOI bruts ou les URL doi.org"
+    hint: "Colle un DOI, un lien doi.org, ou l'URL d'un article (certains sites payants exigent le DOI)"
     loading_title: "Analyse en cours..."
     loading_detail: "Interrogation des bases OpenAlex et Crossref"
     what_we_analyze: "Ce que nous analysons"

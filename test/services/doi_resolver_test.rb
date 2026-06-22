@@ -23,6 +23,21 @@ class DoiResolverTest < ActiveSupport::TestCase
     assert_nil DoiResolver.new("not a doi").resolve
   end
 
+  test "maps a Nature article URL to its DOI without any network call" do
+    assert_equal "10.1038/s41392-020-0207-x",
+      DoiResolver.new("https://www.nature.com/articles/s41392-020-0207-x").resolve
+  end
+
+  test "maps a Nature URL with query/fragment too" do
+    assert_equal "10.1038/nature12373",
+      DoiResolver.new("https://www.nature.com/articles/nature12373?foo=bar#sec1").resolve
+  end
+
+  test "extracts the DOI from a publisher URL that has it in the path (Springer)" do
+    assert_equal "10.1007/s00018-020-03656-y",
+      DoiResolver.new("https://link.springer.com/article/10.1007/s00018-020-03656-y").resolve
+  end
+
   test "refuses to fetch a URL that resolves to a private address (SSRF guard)" do
     # No DOI in the path and a private host: must return nil WITHOUT any HTTP.
     assert_nil DoiResolver.new("http://169.254.169.254/article").resolve

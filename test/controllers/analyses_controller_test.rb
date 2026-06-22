@@ -33,7 +33,7 @@ class AnalysesControllerTest < ActionDispatch::IntegrationTest
   test "a blank DOI is rejected" do
     post analyses_path, params: { doi: "" }
     assert_redirected_to new_analysis_path
-    assert_equal "Please enter a valid DOI or article URL (e.g. 10.1097/MS9.0000000000003127).", flash[:alert]
+    assert_match(/Couldn't find a DOI/, flash[:alert])
   end
 
   test "a malformed DOI is rejected" do
