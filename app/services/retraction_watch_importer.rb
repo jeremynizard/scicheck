@@ -14,28 +14,27 @@ class RetractionWatchImporter
     csv = read(source)
     return nil if csv.nil?
 
-    now  = Time.current
-    rows = []
-    count = 0
+    now = Time.current
 
+    # The dataset has several rows per DOI (e.g. a retraction AND a later
+    # correction). De-duplicate by DOI before upserting — Postgres can't
+    # ON CONFLICT-update the same row twice in one statement. Prefer a full
+    # Retraction over a correction/expression of concern; otherwise keep latest.
+    by_doi = {}
     CSV.parse(csv, headers: true) do |row|
       record = row_to_attributes(row, now)
       next if record.nil?
 
-      rows << record
-      if rows.size >= BATCH_SIZE
-        flush(rows)
-        count += rows.size
-        rows = []
+      existing = by_doi[record[:doi]]
+      if existing.nil? ||
+         record[:nature] == RetractedPaper::RETRACTION ||
+         existing[:nature] != RetractedPaper::RETRACTION
+        by_doi[record[:doi]] = record
       end
     end
 
-    unless rows.empty?
-      flush(rows)
-      count += rows.size
-    end
-
-    count
+    by_doi.values.each_slice(BATCH_SIZE) { |batch| flush(batch) }
+    by_doi.size
   end
 
   private

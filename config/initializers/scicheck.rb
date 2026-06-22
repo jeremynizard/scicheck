@@ -27,7 +27,9 @@ module Scicheck
     # running an open-weight model; swap provider/model via ENV with no code change.
     LLM_API_KEY      = ENV["LLM_API_KEY"].freeze
     LLM_BASE_URL     = ENV.fetch("LLM_BASE_URL", "https://api.groq.com/openai/v1").freeze
-    LLM_MODEL        = ENV.fetch("LLM_MODEL", "llama-3.3-70b-versatile").freeze
+    # Groq deprecated llama-3.3-70b-versatile (2026-06-17); gpt-oss-120b is a
+    # current, JSON-capable replacement. Override per provider via LLM_MODEL.
+    LLM_MODEL        = ENV.fetch("LLM_MODEL", "openai/gpt-oss-120b").freeze
     LLM_READ_TIMEOUT = Integer(ENV.fetch("SCICHECK_LLM_READ_TIMEOUT", 25))
 
     # The AI layer is active only when an API key is configured.

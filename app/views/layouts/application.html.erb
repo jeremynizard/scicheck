@@ -29,15 +29,6 @@
     <header class="site-header">
       <a href="/" class="logo"><%= t("app.name") %></a>
       <span class="tagline"><%= t("app.tagline") %></span>
-      <nav class="lang-switch" aria-label="Language">
-        <% I18n.available_locales.each do |loc| %>
-          <% if loc == I18n.locale %>
-            <span class="lang-current"><%= loc.to_s.upcase %></span>
-          <% else %>
-            <a href="<%= "#{request.path}?locale=#{loc}" %>"><%= loc.to_s.upcase %></a>
-          <% end %>
-        <% end %>
-      </nav>
     </header>
     <main>
       <% if flash[:alert] %>

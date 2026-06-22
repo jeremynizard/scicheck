@@ -45,4 +45,26 @@ class RetractionWatchImporterTest < ActiveSupport::TestCase
     matches = RetractedPaper.retracted_dois_among([ "10.1/retracted", "10.1/corrected", "10.1/clean" ])
     assert_equal [ "10.1/retracted" ], matches
   end
+
+  test "de-duplicates multiple rows for the same DOI, preferring a full retraction" do
+    csv = <<~CSV
+      Title,OriginalPaperDOI,RetractionNature,Reason,RetractionDate
+      Paper X,10.1/Dup,Correction,+Minor error;,01/01/2023 0:00
+      Paper X,10.1/Dup,Retraction,+Fabrication;,02/01/2024 0:00
+    CSV
+    assert_equal 1, import_from(csv)
+    assert_equal 1, RetractedPaper.where(doi: "10.1/dup").count
+    assert_equal "Retraction", RetractedPaper.for("10.1/dup").nature
+    assert_equal "Fabrication", RetractedPaper.for("10.1/dup").reason
+  end
+
+  test "a later correction does not overwrite a retraction for the same DOI" do
+    csv = <<~CSV
+      Title,OriginalPaperDOI,RetractionNature,Reason,RetractionDate
+      Paper X,10.1/Dup,Retraction,+Fabrication;,02/01/2024 0:00
+      Paper X,10.1/Dup,Correction,+Minor error;,03/01/2024 0:00
+    CSV
+    import_from(csv)
+    assert_equal "Retraction", RetractedPaper.for("10.1/dup").nature
+  end
 end

@@ -539,24 +539,7 @@ main {
   margin: 4px 0 0;
 }
 
-.lang-switch {
-  margin-left: auto;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  font-size: 0.8rem;
-}
-.lang-switch a {
-  color: var(--text-muted);
-  text-decoration: none;
-}
-.lang-switch a:hover { color: var(--text); }
-.lang-current {
-  font-weight: 600;
-  color: var(--text);
-}
-
-/* AI-assisted block */
+/* AI summary block */
 .ai-section {
   margin-top: 28px;
   padding: 18px 20px;
