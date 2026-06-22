@@ -20,3 +20,7 @@ production:
   adapter: postgresql
   encoding: unicode
   url: <%= ENV["DATABASE_URL"] %>
+  # Neon's pooled endpoint is PgBouncer in transaction mode, which doesn't
+  # support server-side prepared statements. Disabling them makes either the
+  # pooled or the direct connection string work reliably.
+  prepared_statements: false
