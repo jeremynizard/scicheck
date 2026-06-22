@@ -30,8 +30,8 @@ The scoring is **fully deterministic** — no LLM in the loop — so the same pa
 ## Stack
 
 - **Ruby** 3.3.5, **Rails** 8.1 (importmap, Stimulus, Turbo — no React)
-- **Durable persistence**: results are stored per (DOI, locale) — SQLite in dev/test, **PostgreSQL in production** (Neon). Shareable/bookmarkable result URLs survive restarts.
-- **Background analysis**: ActiveJob `:async` (in-process thread pool, no Redis); the result page polls for completion.
+- **Durable persistence**: results are stored per DOI — SQLite in dev/test, **PostgreSQL in production** (Neon). Shareable/bookmarkable result URLs survive restarts; a history is kept.
+- **Background analysis**: ActiveJob `:async` (in-process thread pool, no Redis); the request returns immediately and the result page polls a status endpoint until ready.
 - **Optional AI layer**: a clearly-labelled, abstract-only summary + qualitative read via any OpenAI-compatible model (Groq by default) — never affects the deterministic score.
 - External data: **Crossref**, **OpenAlex**, **PubMed E-utilities**, **PubPeer**, **Retraction Watch** (CC0).
 - **American English** UI (built on Rails I18n, so another language can be re-added by dropping in a locale file).
@@ -91,8 +91,9 @@ bin/rails "scicheck:retraction_watch:import[path/to/retractions.csv]"  # from a 
 ## Architecture
 
 ```
-AnalysesController  → thin: validates the DOI, runs (and caches) the analysis, PRG redirect to a shareable URL
-DoiResolver         → normalizes raw DOIs / doi.org / publisher URLs (SSRF-guarded)
+AnalysesController  → thin: validates the DOI, enqueues a background job, redirects; the result page polls
+AnalysisJob         → runs the analysis off-request (ActiveJob :async) and persists it per DOI
+DoiResolver         → normalizes raw DOIs / doi.org / publisher URLs (Nature mapping; SSRF-guarded)
 AnalysisRunner      → orchestrates two parallel waves of API calls, builds scores + meta
   HttpClient (concern) → timeouts, polite UA, uniform error handling, SSRF guard
   *Service classes  → one per API (Crossref, OpenAlex, PubMed, PubPeer, retractions, authors)
@@ -104,11 +105,11 @@ See [docs/METHODOLOGY.md](docs/METHODOLOGY.md) for the scoring details and candi
 
 ## Deployment
 
-Configured for [Render](https://render.com) via [render.yaml](render.yaml) (Docker). Set `RAILS_MASTER_KEY` and `SCICHECK_CONTACT_EMAIL` in the dashboard. The free plan uses ephemeral disk, so the analysis cache resets on restart — result URLs self-heal by recomputing on a cache miss.
+Configured for [Render](https://render.com) via [render.yaml](render.yaml) (Docker). Set `RAILS_MASTER_KEY`, `DATABASE_URL` (a free [Neon](https://neon.com) Postgres — **required**, the app won't boot without it in production), and `SCICHECK_CONTACT_EMAIL` in the dashboard; `LLM_API_KEY` is optional (enables the AI summary). Migrations run automatically on boot (`db:prepare` in the entrypoint). Results are stored durably in Postgres, so they survive restarts.
 
 ## Status
 
-Working end-to-end MVP — **not yet launched publicly**. The eight deterministic criteria are fully implemented and tested, with durable persistence, background processing, an optional AI-assisted reading layer, Retraction Watch integration, and a browser extension. On the roadmap: deeper AI extraction (sample-size / p-value / spin), non-biomedical fallbacks, and empirical weight calibration.
+**Deployed and working** (not yet publicly launched). The eight deterministic criteria are fully implemented and tested, with durable persistence, background processing, an optional AI summary layer, Retraction Watch integration, and a browser extension. On the roadmap: deeper AI extraction (sample-size / p-value / spin), non-biomedical fallbacks, and empirical weight calibration.
 
 ---
 

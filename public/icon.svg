@@ -1,3 +1,4 @@
-<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="256" cy="256" r="256" fill="red"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="SciCheck">
+  <rect width="64" height="64" rx="14" fill="#2d9e5f"/>
+  <path d="M17 33.5 l9.5 9.5 L47 20.5" fill="none" stroke="#ffffff" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
