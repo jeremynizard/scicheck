@@ -11,7 +11,7 @@ class LocaleTest < ActionDispatch::IntegrationTest
     get new_analysis_path(locale: :fr)
     assert_response :success
     assert_select "h1", text: "Évaluez la qualité d'un article scientifique"
-    assert_select ".doi-hint", text: "Accepte les DOI bruts ou les URL doi.org"
+    assert_select ".doi-hint", text: /Colle un DOI/ # French hint (vs English "Paste")
   end
 
   test "the chosen locale persists across requests via the session" do
