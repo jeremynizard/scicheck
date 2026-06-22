@@ -42,10 +42,10 @@ module Scicheck
     # Rate limiting (rack-attack is not auto-inserted as middleware).
     config.middleware.use Rack::Attack
 
-    # Internationalization: English default, French available.
-    config.i18n.available_locales = %i[en fr]
+    # American English only. (i18n keys are kept so another language could be
+    # re-added later by dropping in a locale file + a switcher.)
+    config.i18n.available_locales = %i[en]
     config.i18n.default_locale = :en
-    config.i18n.fallbacks = true
 
     # The cached analysis payload is YAML-serialized and contains Symbols and
     # Dates — permit them so it round-trips through the DB column.

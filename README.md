@@ -34,7 +34,7 @@ The scoring is **fully deterministic** — no LLM in the loop — so the same pa
 - **Background analysis**: ActiveJob `:async` (in-process thread pool, no Redis); the result page polls for completion.
 - **Optional AI layer**: a clearly-labelled, abstract-only summary + qualitative read via any OpenAI-compatible model (Groq by default) — never affects the deterministic score.
 - External data: **Crossref**, **OpenAlex**, **PubMed E-utilities**, **PubPeer**, **Retraction Watch** (CC0).
-- **Bilingual** (English default, French) — switch via the header or `?locale=fr`.
+- **American English** UI (built on Rails I18n, so another language can be re-added by dropping in a locale file).
 - **JSON API** (`/api/v1/analysis`, CORS-enabled) consumed by a **Manifest V3 browser extension** ([extension/](extension/)).
 - Dockerized; deployed on Render; GitHub Actions CI (tests, RuboCop, Brakeman, bundler-audit); PWA scaffolding.
 
