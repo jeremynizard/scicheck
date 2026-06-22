@@ -12,6 +12,11 @@ Rack::Attack.enabled = false
 
 module ActiveSupport
   class TestCase
+    include ActiveJob::TestHelper
+
+    # The cache backs job-state tracking; isolate it between tests.
+    setup { Rails.cache.clear }
+
     # Helper to read a fixture file from test/fixtures/files.
     def file_fixture_body(name)
       File.read(Rails.root.join("test", "fixtures", "files", name))

@@ -2,6 +2,10 @@ source "https://rubygems.org"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 8.1.2"
+
+# Database: SQLite in development/test (zero-setup), PostgreSQL in production (Neon).
+gem "sqlite3", ">= 2.1", group: %i[development test]
+gem "pg", "~> 1.5", group: :production
 # The modern asset pipeline for Rails [https://github.com/rails/propshaft]
 gem "propshaft"
 # Use the Puma web server [https://github.com/puma/puma]
@@ -15,11 +19,15 @@ gem "stimulus-rails"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
 
-# XML parsing for PubMed E-utilities responses (default gem until Ruby 3.4)
+# XML / CSV parsing (default gems until Ruby 3.4) — PubMed XML, Retraction Watch CSV
 gem "rexml"
+gem "csv"
 
 # Rate limiting / throttling of abusive clients [https://github.com/rack/rack-attack]
 gem "rack-attack"
+
+# Cross-origin requests for the JSON API consumed by the browser extension
+gem "rack-cors"
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"

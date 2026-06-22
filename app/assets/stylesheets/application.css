@@ -555,3 +555,33 @@ main {
   font-weight: 600;
   color: var(--text);
 }
+
+/* AI-assisted block */
+.ai-section {
+  margin-top: 28px;
+  padding: 18px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--yellow-green);
+  border-radius: var(--radius);
+}
+.ai-section h2 { margin-top: 0; }
+.ai-badge {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 8px;
+  vertical-align: middle;
+}
+.ai-summary { font-size: 0.92rem; }
+.ai-points { margin: 10px 0; padding-left: 20px; }
+.ai-points li { font-size: 0.88rem; margin-bottom: 4px; }
+.ai-disclaimer {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin: 10px 0 0;
+}

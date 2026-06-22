@@ -65,6 +65,30 @@ module HttpClient
     nil
   end
 
+  # POST a JSON body and parse the JSON response. Returns nil on any failure.
+  # Used for the LLM provider (OpenAI-compatible chat completions).
+  def post_json(uri, body:, headers: {}, open_timeout: Scicheck::Config::HTTP_OPEN_TIMEOUT,
+                read_timeout: Scicheck::Config::LLM_READ_TIMEOUT)
+    http = Net::HTTP.new(uri.hostname, uri.port)
+    http.use_ssl      = uri.scheme == "https"
+    http.cert_store   = ssl_store if http.use_ssl?
+    http.open_timeout = open_timeout
+    http.read_timeout = read_timeout
+
+    response = http.start do |conn|
+      request = Net::HTTP::Post.new(uri)
+      request.body = body.to_json
+      default_headers.merge("Content-Type" => "application/json").merge(headers).each { |k, v| request[k] = v }
+      conn.request(request)
+    end
+
+    return nil unless response.is_a?(Net::HTTPSuccess)
+    JSON.parse(response.body)
+  rescue *NETWORK_ERRORS, JSON::ParserError => e
+    log_http_failure(uri, e)
+    nil
+  end
+
   # Like #http_get, but refuses to connect to private/loopback/link-local hosts
   # and to non-HTTP(S) schemes. Use for any URL derived from user input.
   # Re-checks every redirect hop. Returns the final body String, or nil.

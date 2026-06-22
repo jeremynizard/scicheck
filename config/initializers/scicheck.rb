@@ -21,5 +21,18 @@ module Scicheck
     # Outbound HTTP timeouts (seconds).
     HTTP_OPEN_TIMEOUT = Integer(ENV.fetch("SCICHECK_HTTP_OPEN_TIMEOUT", 5))
     HTTP_READ_TIMEOUT = Integer(ENV.fetch("SCICHECK_HTTP_READ_TIMEOUT", 12))
+
+    # --- Optional "AI-assisted" layer (abstract-only; never affects the score) ---
+    # Any OpenAI-compatible chat endpoint. Default points at Groq's free tier
+    # running an open-weight model; swap provider/model via ENV with no code change.
+    LLM_API_KEY      = ENV["LLM_API_KEY"].freeze
+    LLM_BASE_URL     = ENV.fetch("LLM_BASE_URL", "https://api.groq.com/openai/v1").freeze
+    LLM_MODEL        = ENV.fetch("LLM_MODEL", "llama-3.3-70b-versatile").freeze
+    LLM_READ_TIMEOUT = Integer(ENV.fetch("SCICHECK_LLM_READ_TIMEOUT", 25))
+
+    # The AI layer is active only when an API key is configured.
+    def self.llm_enabled?
+      LLM_API_KEY.present?
+    end
   end
 end

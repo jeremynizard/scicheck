@@ -22,6 +22,8 @@ class AnalysesControllerTest < ActionDispatch::IntegrationTest
     stub_request(:get, /efetch\.fcgi/).to_return(status: 404)
   end
 
+  def id_for(doi) = Base64.urlsafe_encode64(doi, padding: false)
+
   test "the home page renders" do
     get new_analysis_path
     assert_response :success
@@ -39,17 +41,51 @@ class AnalysesControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to new_analysis_path
   end
 
-  test "a valid DOI computes, then redirects to a shareable result URL (PRG)" do
+  test "a valid DOI enqueues the analysis and redirects to a shareable URL (PRG)" do
+    assert_enqueued_with(job: AnalysisJob) do
+      post analyses_path, params: { doi: "10.1234/x" }
+    end
+    assert_redirected_to analysis_path(id_for("10.1234/x"))
+  end
+
+  test "the result renders once the background job has run" do
     stub_all
-    post analyses_path, params: { doi: "10.1234/x" }
-
-    expected_id = Base64.urlsafe_encode64("10.1234/x", padding: false)
-    assert_redirected_to analysis_path(expected_id)
-
+    perform_enqueued_jobs { post analyses_path, params: { doi: "10.1234/x" } }
     follow_redirect!
     assert_response :success
     assert_select ".grade-circle"
     assert_select ".article-title", text: "The Journal"
+  end
+
+  test "shows a pending page while the analysis is still running" do
+    stub_all
+    post analyses_path, params: { doi: "10.1234/x" } # enqueued, NOT performed
+    follow_redirect!
+    assert_response :success
+    assert_select ".pending-state"
+  end
+
+  test "status reports pending, then ready after the job runs" do
+    stub_all
+    post analyses_path, params: { doi: "10.1234/x" }
+
+    get analysis_status_path(id_for("10.1234/x"))
+    assert_equal "pending", response.parsed_body["state"]
+
+    perform_enqueued_jobs
+    get analysis_status_path(id_for("10.1234/x"))
+    assert_equal "ready", response.parsed_body["state"]
+  end
+
+  test "a stored result is served from the DB on later views (durable, no re-query)" do
+    stub_all
+    perform_enqueued_jobs { post analyses_path, params: { doi: "10.1234/x" } }
+    assert_equal 1, Analysis.where(doi: "10.1234/x").count
+
+    WebMock.reset! # a second view must be served from the DB with zero HTTP
+    get analysis_path(id_for("10.1234/x"))
+    assert_response :success
+    assert_select ".grade-circle"
   end
 
   test "an invalid result id redirects home" do
@@ -57,11 +93,13 @@ class AnalysesControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to new_analysis_path
   end
 
-  test "an unknown DOI redirects home with an alert" do
+  test "an unknown DOI surfaces as not found after the job runs" do
     stub_request(:get, /api\.crossref\.org/).to_return(status: 404)
     stub_request(:get, /api\.openalex\.org/).to_return(status: 404)
     stub_request(:get, /pubpeer\.com/).to_return(status: 404)
-    post analyses_path, params: { doi: "10.9999/nope" }
+
+    perform_enqueued_jobs { post analyses_path, params: { doi: "10.9999/nope" } }
+    get analysis_path(id_for("10.9999/nope"))
     assert_redirected_to new_analysis_path
     assert_match(/not found/i, flash[:alert])
   end

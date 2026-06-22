@@ -14,6 +14,11 @@ class Rack::Attack
     req.ip if req.get? && req.path.start_with?("/analyses/")
   end
 
+  # JSON API consumed by the browser extension.
+  throttle("api/ip", limit: 30, period: 60) do |req|
+    req.ip if req.path.start_with?("/api/")
+  end
+
   # Coarse overall ceiling per IP.
   throttle("req/ip", limit: 120, period: 60, &:ip)
 

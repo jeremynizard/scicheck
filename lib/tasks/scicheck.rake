@@ -55,4 +55,14 @@ namespace :scicheck do
     puts "#{CASES.size - failures}/#{CASES.size} passed"
     abort("Validation failures: #{failures}") if failures.positive?
   end
+
+  namespace :retraction_watch do
+    desc "Import the Retraction Watch dataset (CC0). Optional [source] = URL or local file path."
+    task :import, [ :source ] => :environment do |_t, args|
+      source = args[:source] || RetractionWatchImporter::DEFAULT_SOURCE
+      count  = RetractionWatchImporter.new.import(source)
+      abort("Could not read the Retraction Watch source: #{source}") if count.nil?
+      puts "Imported/updated #{count} retracted papers."
+    end
+  end
 end

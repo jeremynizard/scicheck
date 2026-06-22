@@ -3,6 +3,9 @@
   <% if @meta[:retracted] || @result[:retracted] %>
     <div class="flash flash--alert retracted-banner">
       <%= t("results.retracted_banner_html") %>
+      <% if @meta.dig(:retraction, :reason).present? %>
+        <span class="retracted-reason"><%= t("results.retracted_reason", reason: @meta[:retraction][:reason]) %></span>
+      <% end %>
     </div>
   <% end %>
 
@@ -114,6 +117,24 @@
       <% end %>
     </div>
   </div>
+
+  <%# --- AI-assisted insights (optional, informational, not scored) --- %>
+  <% if @ai.present? && (@ai[:summary].present? || @ai[:points]&.any?) %>
+    <div class="ai-section">
+      <h2><%= t("results.ai.title") %> <span class="ai-badge"><%= t("results.ai.experimental") %></span></h2>
+      <% if @ai[:summary].present? %>
+        <p class="ai-summary"><%= @ai[:summary] %></p>
+      <% end %>
+      <% if @ai[:points]&.any? %>
+        <ul class="ai-points">
+          <% @ai[:points].each do |point| %>
+            <li><%= point %></li>
+          <% end %>
+        </ul>
+      <% end %>
+      <p class="ai-disclaimer"><%= t("results.ai.disclaimer") %></p>
+    </div>
+  <% end %>
 
   <%# --- Abstract --- %>
   <% if @meta[:abstract].present? %>
