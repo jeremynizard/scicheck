@@ -24,7 +24,7 @@ class AnalysisRunner
     retracted = (openalex&.dig(:is_retracted) == true) || rw_record&.retraction? || false
 
     result = Scoring::Aggregator.new(scores, retracted: retracted).aggregate
-    meta   = build_meta(crossref, openalex, profiles)
+    meta   = build_meta(crossref, openalex, pubmed, profiles)
     meta[:retracted]  = retracted
     meta[:retraction] = retraction_details(rw_record)
 
@@ -109,11 +109,11 @@ class AnalysisRunner
     }
   end
 
-  def build_meta(crossref, openalex, profiles)
+  def build_meta(crossref, openalex, pubmed, profiles)
     {
       doi:       @doi,
       title:     crossref&.dig(:title) || openalex&.dig(:journal_name),
-      abstract:  crossref&.dig(:abstract).presence || openalex&.dig(:abstract),
+      abstract:  crossref&.dig(:abstract).presence || openalex&.dig(:abstract).presence || pubmed&.dig(:abstract),
       authors:   build_authors(crossref, openalex, profiles),
       journal:   crossref&.dig(:journal) || openalex&.dig(:journal_name),
       published: crossref&.dig(:published_date) || openalex&.dig(:publication_date),

@@ -14,6 +14,10 @@ class PubmedServiceTest < ActiveSupport::TestCase
         <DataBankList>
          <DataBank><DataBankName>ClinicalTrials.gov</DataBankName></DataBank>
         </DataBankList>
+        <Abstract>
+         <AbstractText Label="BACKGROUND">We studied the <i>effect</i> of the intervention.</AbstractText>
+         <AbstractText Label="RESULTS">It improved recovery in 240 patients.</AbstractText>
+        </Abstract>
        </Article>
        <MeshHeadingList>
         <MeshHeading><DescriptorName UI="x">Humans</DescriptorName></MeshHeading>
@@ -40,6 +44,13 @@ class PubmedServiceTest < ActiveSupport::TestCase
     assert_includes data[:mesh_terms], "Humans"
     assert_equal Date.new(2024, 1, 5), data[:received_date]
     assert_equal Date.new(2024, 3, 10), data[:accepted_date]
+  end
+
+  test "concatenates structured abstract sections (stripping inline markup)" do
+    stub_request(:get, /efetch\.fcgi/).to_return(status: 200, body: XML)
+    abstract = PubmedService.new("40212156").fetch[:abstract]
+    assert_includes abstract, "We studied the effect of the intervention."
+    assert_includes abstract, "It improved recovery in 240 patients."
   end
 
   test "returns nil for a blank or non-numeric pmid without any HTTP" do
